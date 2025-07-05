@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  bot:
+    build: .
+    container_name: botdc_develop
+    ports:
+      - "5432:5432"
+    volumes:
+      - .:/app
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped

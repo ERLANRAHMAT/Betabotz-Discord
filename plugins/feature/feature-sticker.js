@@ -1,134 +1,136 @@
-const fetchWithLog = require("../../utils/fetchWithLog");
+const fetch = require("node-fetch");
 const fs = require("fs");
 const path = require("path");
 const { AttachmentBuilder, EmbedBuilder } = require("discord.js");
 const { sticker5 } = require("../../lib/sticker");
 const config = require("../../config");
 
-const packname = process.env.STICKER_PACKNAME || "Arteon";
-const author = process.env.STICKER_AUTHOR || "Arteon Studio";
+// Konfigurasi stiker
+const packname = process.env.STICKER_PACKNAME || "BetaBotz";
+const author = process.env.STICKER_AUTHOR || "Arteon";
 const errorStickerPath = path.join(__dirname, "../../media/sticker/emror.webp");
 
-async function handleStickerCommand(message, client) {
-  if (message.author.bot) return;
-  if (!message.content.startsWith(config.prefix)) return;
-
-  const [cmd, ...args] = message.content
-    .slice(config.prefix.length)
-    .trim()
-    .split(/\s+/);
-  const text =
-    args.join(" ") ||
-    (message.reference
-      ? (await message.channel.messages.fetch(message.reference.messageId))
-          .content
-      : "");
-
-  if (!["attp", "ttp", "brat", "bratvideo"].includes(cmd)) return;
-
-  if (!text) {
-    return message.reply({
-      embeds: [
-        new EmbedBuilder()
-          .setColor(0xe74c3c)
-          .setTitle("❗ Contoh Penggunaan")
-          .setDescription(
-            `!${cmd} <teks>\n\natau reply pesan lalu ketik: !${cmd}`
-          ),
-      ],
-    });
-  }
-
-  let resUrl;
-  let filename = "sticker.webp";
-  let isGif = false;
+/**
+ * Fungsi inti untuk membuat stiker dari teks dan mengirimkannya.
+ * @param {import('discord.js').Message} message - Objek pesan dari Discord.
+ * @param {string} apiUrl - URL API untuk membuat stiker.
+ * @param {boolean} isVideo - Apakah outputnya video (MP4) atau gambar (WEBP).
+ */
+async function createSticker(message, apiUrl, isVideo = false) {
+  const filename = isVideo ? "sticker.mp4" : "sticker.webp";
 
   try {
-    if (cmd === "attp") {
-      resUrl = `https://api.betabotz.eu.org/api/maker/attp?text=${encodeURIComponent(
-        text.substring(0, 151)
-      )}&apikey=${config.apikey_lann}`;
-    } else if (cmd === "ttp") {
-      resUrl = `https://api.betabotz.eu.org/api/maker/ttp?text=${encodeURIComponent(
-        text.substring(0, 151)
-      )}&apikey=${config.apikey_lann}`;
-    } else if (cmd === "brat") {
-      resUrl = `https://api.betabotz.eu.org/api/maker/brat?text=${encodeURIComponent(
-        text.substring(0, 151)
-      )}&apikey=${config.apikey_lann}`;
-    } else if (cmd === "bratvideo") {
-      resUrl = `https://api.betabotz.eu.org/api/maker/brat-video?text=${encodeURIComponent(
-        text.substring(0, 151)
-      )}&apikey=${config.apikey_lann}`;
-      filename = "bratvideo.mp4";
-      isGif = true;
+    const res = await fetch(apiUrl);
+    if (!res.ok) {
+      throw new Error(`API returned status ${res.status}`);
     }
+    const fileBuffer = await res.buffer();
 
-    // Fetch file dari API
-    let fetched = await fetchWithLog(resUrl, {}, cmd.toUpperCase());
-    let fileBuffer;
-
-    // Cek apakah response JSON (berisi URL) atau file langsung
-    const contentType = fetched.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-      const json = await fetched.json();
-      if (!json.result) throw new Error("API tidak mengembalikan file.");
-      // Fetch ulang ke URL file
-      fetched = await fetchWithLog(
-        json.result,
-        {},
-        cmd.toUpperCase() + "-FILE"
-      );
-      if (!fetched.ok) throw new Error("Gagal fetch file dari URL API.");
-      fileBuffer = await fetched.buffer();
-    } else {
-      if (!fetched.ok) throw new Error("Gagal fetch file dari API.");
-      fileBuffer = await fetched.buffer();
+    // Untuk stiker (bukan video), kita bisa proses dengan metadata kustom
+    let finalBuffer = fileBuffer;
+    if (!isVideo && typeof sticker5 === 'function') {
+      try {
+        const processedSticker = await sticker5(fileBuffer, null, packname, author, ["🎨"]);
+        if (processedSticker) finalBuffer = processedSticker;
+      } catch (stickerError) {
+        console.error("[STICKER] Gagal memproses dengan metadata, mengirim stiker asli:", stickerError);
+      }
     }
-
-    let sendBuffer = fileBuffer;
-    // Untuk sticker (webp), bisa proses dengan sticker5 jika mau
-    if (!isGif && typeof sticker5 === "function") {
-      const result = await sticker5(fileBuffer, null, packname, author, ["🎨"]);
-      if (result) sendBuffer = result;
-    }
-
+    
+    // Kirim hasilnya
     await message.reply({
-      files: [new AttachmentBuilder(sendBuffer, { name: filename })],
+      files: [new AttachmentBuilder(finalBuffer, { name: filename })],
     });
+
   } catch (e) {
-    console.error("Error:", e);
-    // Kirim sticker error jika gagal
+    console.error("Gagal membuat stiker:", e);
+    // Jika terjadi error, kirim stiker error jika ada
     if (fs.existsSync(errorStickerPath)) {
       await message.reply({
         files: [new AttachmentBuilder(errorStickerPath)],
       });
     } else {
-      await message.reply("❌ Gagal membuat sticker.");
+      await message.reply("❌ Gagal membuat stiker. Terjadi kesalahan.");
     }
   }
 }
 
+/**
+ * Fungsi untuk membuat embed bantuan.
+ */
+function createHelpEmbed() {
+    return new EmbedBuilder()
+      .setColor(0x7289DA)
+      .setTitle("🎨 Panduan Perintah Stiker Teks")
+      .setDescription(
+        "Berikut adalah perintah yang tersedia untuk membuat stiker dari teks:\n\n" +
+        "• `!attp <teks>`\nMembuat stiker teks bergerak dengan latar belakang gradien.\n\n" +
+        "• `!ttp <teks>`\nMembuat stiker teks dengan latar belakang hitam.\n\n" +
+        "• `!brat <teks>`\nMembuat stiker teks di atas template 'brat'.\n\n" +
+        "• `!bratvideo <teks>`\nMembuat video stiker di atas template 'brat'."
+      )
+      .setFooter({ text: "Anda juga bisa me-reply pesan untuk mengambil teksnya." });
+}
+
+
 module.exports = {
+  // Perintah utama, akan menampilkan bantuan jika dipanggil (!sticker)
   prefix: "sticker",
-  category: "feature",
-  aliases: ["attp", "ttp", "brat", "bratvideo"],
-  execute: async (message, args, client) => {
-    let cmd = args[0];
-    let text = args.slice(1).join(" ");
-    if (!cmd) return message.reply("❗ Contoh: !sticker attp teks");
+  category: "maker",
 
-    if (!text && message.reference) {
-      const replied = await message.channel.messages.fetch(
-        message.reference.messageId
-      );
-      text = replied.content;
+  /**
+   * Fungsi execute utama sekarang berfungsi sebagai perintah bantuan.
+   * @param {import('discord.js').Message} message
+   */
+  execute: async (message) => {
+    await message.reply({ embeds: [createHelpEmbed()] });
+  },
+
+  // Sub-perintah yang akan didaftarkan secara otomatis oleh index.js
+  subCommands: {
+    attp: {
+      aliases: [],
+      /** @param {import('discord.js').Message} message */
+      handler: async (message, args, client) => {
+        const text = args.join(" ") || (message.reference ? (await message.channel.messages.fetch(message.reference.messageId)).content : "");
+        if (!text) return message.reply("Contoh: `!attp Halo Dunia` atau reply pesan.");
+
+        const apiUrl = `https://api.betabotz.eu.org/api/maker/attp?text=${encodeURIComponent(text.substring(0, 150))}&apikey=${config.apikey_lann}`;
+        await createSticker(message, apiUrl, false);
+      }
+    },
+    ttp: {
+      aliases: [],
+      /** @param {import('discord.js').Message} message */
+      handler: async (message, args, client) => {
+        const text = args.join(" ") || (message.reference ? (await message.channel.messages.fetch(message.reference.messageId)).content : "");
+        if (!text) return message.reply("Contoh: `!ttp Halo Dunia` atau reply pesan.");
+        
+        const apiUrl = `https://api.betabotz.eu.org/api/maker/ttp?text=${encodeURIComponent(text.substring(0, 150))}&apikey=${config.apikey_lann}`;
+        await createSticker(message, apiUrl, false);
+      }
+    },
+    brat: {
+      aliases: [],
+      /** @param {import('discord.js').Message} message */
+      handler: async (message, args, client) => {
+        const text = args.join(" ") || (message.reference ? (await message.channel.messages.fetch(message.reference.messageId)).content : "");
+        if (!text) return message.reply("Contoh: `!brat Teks Atas | Teks Bawah` atau reply pesan.");
+        
+        const apiUrl = `https://api.betabotz.eu.org/api/maker/brat?text=${encodeURIComponent(text.substring(0, 150))}&apikey=${config.apikey_lann}`;
+        await createSticker(message, apiUrl, false);
+      }
+    },
+    bratvideo: {
+      aliases: [],
+      /** @param {import('discord.js').Message} message */
+      handler: async (message, args, client) => {
+        const text = args.join(" ") || (message.reference ? (await message.channel.messages.fetch(message.reference.messageId)).content : "");
+        if (!text) return message.reply("Contoh: `!bratvideo Teks` atau reply pesan.");
+        
+        const apiUrl = `https://api.betabotz.eu.org/api/maker/brat-video?text=${encodeURIComponent(text.substring(0, 150))}&apikey=${config.apikey_lann}`;
+        await createSticker(message, apiUrl, true);
+      }
     }
-
-    message.content = `!${cmd} ${text}`;
-    await handleStickerCommand(message, client);
-  },
-  handleMessage: async (message, client) => {
-    await handleStickerCommand(message, client);
-  },
+  }
 };

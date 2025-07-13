@@ -9,7 +9,7 @@ const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 module.exports = {
   prefix: "pindl",
   category: "downloader",
-  aliases: ["pinterest", "pinterestdl", "pin", "pindl"],
+  aliases: ["pinterest", "pinterestdl", "pin2", "pindl2"],
   /**
    * @param {import('discord.js').Message} message
    * @param {string[]} args

@@ -16,7 +16,12 @@ module.exports = {
   guildID: "wajib di isi", // ID server tempat bot ini berada
 
   // API Keys
-  apikey_lann: process.env.API_KEY_LANN,
+  apikey_lann: process.env.API_KEY_LANN, // Mengambil API key dari .env
+  // kamu bisa dapat apikey ini dengan beli di https://api.betabotz.eu.org
+
+  apikey_dana: process.env.API_KEY_DANA, // Mengambil API key dari .env
+  // kamu bisa dapat apikey ini dengan beli di https://api.danafxc.my.id atau ke nomor WhatsApp 081289694906
+
   // buat file dengan nama .env dan isi dengan DISCORD
   // DISCORD_BOT_TOKEN=""
   // API_KEY_LANN=""

@@ -1,144 +1,140 @@
 const { EmbedBuilder } = require('discord.js');
+const fetch = require('node-fetch');
+const config = require("../../config");
 
-// Map untuk menyimpan sesi permainan, kunci: channelId
 const gameSessions = new Map();
+const initialAttempts = 3;
+const apiUrl = `https://api.danafxc.my.id/api/math?apikey=${config.apikey_dana}`;
 
-// --- Konfigurasi Mode Permainan ---
-const modes = {
-  noob: [-3, 3, -3, 3, '+-', 15000, 100],
-  easy: [-10, 10, -10, 10, '*/+-', 20000, 750],
-  medium: [-40, 40, -20, 20, '*/+-', 40000, 1500],
-  hard: [-100, 100, -70, 70, '*/+-', 60000, 3000],
-  extreme: [-9999, 9999, -9999, 9999, '*/', 80000, 10000],
-  impossible: [-99999, 99999, -99999, 99999, '*/', 100000, 35000],
+// --- Konfigurasi Waktu Baru untuk Semua Level ---
+const timeLimits = {
+    noob: 30000,        // 30 detik
+    easy: 45000,        // 45 detik
+    medium: 60000,      // 1 menit
+    hard: 90000,        // 1.5 menit
+    master: 120000,     // 2 menit
+    grandmaster: 150000,// 2.5 menit
+    legendary: 180000,  // 3 menit
+    mythic: 240000,     // 4 menit
+    god: 300000,        // 5 menit
 };
+// Level default jika tidak ada di daftar
+const defaultTime = 60000;
 
-const operators = {
-  '+': '+',
-  '-': '-',
-  '*': '×',
-  '/': '÷'
-};
-// --- Akhir Konfigurasi ---
-
-
-// --- Fungsi Helper ---
-function randomInt(from, to) {
-  if (from > to) [from, to] = [to, from];
-  return Math.floor(Math.random() * (to - from + 1) + from);
-}
-
-function pickRandom(list) {
-  return list[Math.floor(Math.random() * list.length)];
+/**
+ * Fungsi untuk mengambil seluruh data soal dari API.
+ * @returns {Promise<Array|null>}
+ */
+async function fetchAllQuestions() {
+  try {
+    const response = await fetch(apiUrl);
+    if (!response.ok) throw new Error(`API returned status ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error("[MATH API] Gagal mengambil data:", error);
+    return null;
+  }
 }
 
 /**
- * Fungsi untuk menghasilkan soal matematika berdasarkan mode
+ * [BARU] Fungsi untuk menormalkan string jawaban agar lebih fleksibel.
+ * Menghapus spasi dan mengubah ke huruf kecil.
+ * @param {string} str - String jawaban.
+ * @returns {string}
  */
-function genMath(mode) {
-  let [a1, a2, b1, b2, ops, time, bonus] = modes[mode];
-  let a = randomInt(a1, a2);
-  let b = randomInt(b1, b2);
-  let op = pickRandom([...ops]);
-  // Menggunakan eval untuk kalkulasi, pastikan inputnya aman (hanya angka dan operator)
-  let result = eval(`${a} ${op.replace('/', '/')} ${b}`);
-  
-  // Bulatkan hasil pembagian menjadi 2 angka desimal jika perlu
-  if (op === '/' && result % 1 !== 0) {
-      result = parseFloat(result.toFixed(2));
-  }
-
-  return {
-    str: `${a} ${operators[op]} ${b}`,
-    mode,
-    time,
-    bonus,
-    result
-  };
+function normalizeAnswer(str) {
+    return str.replace(/\s+/g, '').toLowerCase();
 }
-// --- Akhir Fungsi Helper ---
-
 
 module.exports = {
   prefix: "math",
   category: "game",
   aliases: ["mtk"],
 
-  /**
-   * @param {import('discord.js').Message} message
-   */
   async execute(message, args, client) {
     const channelId = message.channel.id;
     const mode = args[0]?.toLowerCase();
 
-    // Jika mode tidak valid atau tidak ada, kirim pesan bantuan
-    if (!mode || !(mode in modes)) {
-        const availableModes = Object.keys(modes).join(', ');
+    if (!mode) {
+        const loadingHelp = await message.reply("🔍 Mengambil daftar level yang tersedia...");
+        const allQuestions = await fetchAllQuestions();
+        if (!allQuestions) return loadingHelp.edit("❌ Gagal mengambil daftar level dari API.");
+
+        const availableModes = [...new Set(allQuestions.map(q => q.level))];
+        const modeOrder = ['noob', 'easy', 'medium', 'hard', 'master', 'grandmaster', 'legendary', 'mythic', 'god'];
+        const sortedModes = availableModes.sort((a, b) => modeOrder.indexOf(a) - modeOrder.indexOf(b));
+
         const helpEmbed = new EmbedBuilder()
             .setColor(0x3498DB)
             .setTitle("❓ Bantuan Permainan Math")
-            .setDescription("Uji kecepatan berhitungmu!")
+            .setDescription("Uji kemampuan matematikamu dari level dasar hingga dewa!")
             .addFields(
-                { name: "Cara Bermain", value: `Gunakan perintah \`!math <mode>\`\nContoh: \`!math medium\`` },
-                { name: "Mode yang Tersedia", value: `\`${availableModes}\`` }
+                { name: "Cara Bermain", value: `Gunakan perintah \`!math <mode>\`\nContoh: \`!math god\`` },
+                { name: "Mode yang Tersedia", value: `\`${sortedModes.join('`, `')}\`` }
             );
-        return message.reply({ embeds: [helpEmbed] });
+        return loadingHelp.edit({ content: null, embeds: [helpEmbed] });
     }
 
     if (gameSessions.has(channelId)) {
         return message.reply("❗ Masih ada soal matematika yang belum terjawab di channel ini.");
     }
+    
+    const loadingMessage = await message.reply(`🔍 Mencari soal matematika level **${mode}**...`);
 
-    // Buat soal baru
-    const math = genMath(mode);
-    const initialAttempts = 4; // Jumlah kesempatan awal
+    const allQuestions = await fetchAllQuestions();
+    if (!allQuestions) return loadingMessage.edit("❌ Gagal mengambil soal dari API.");
 
-    // Buat dan kirim soal
+    const questionsForLevel = allQuestions.filter(q => q.level.toLowerCase() === mode);
+    if (questionsForLevel.length === 0) {
+        return loadingMessage.edit(`❌ Maaf, tidak ditemukan soal untuk level **${mode}**. Coba level lain.`);
+    }
+
+    const question = questionsForLevel[Math.floor(Math.random() * questionsForLevel.length)];
+    const time = timeLimits[question.level] || defaultTime;
+
     const gameEmbed = new EmbedBuilder()
       .setColor(0xF1C40F)
-      .setTitle(`Matematika Mode: ${mode.charAt(0).toUpperCase() + mode.slice(1)}`)
-      .setDescription(`Berapa hasil dari **${math.str}**?`)
+      .setTitle(`🧮 Matematika Level: ${question.level.charAt(0).toUpperCase() + question.level.slice(1)}`)
+      .setDescription(`**Deskripsi:** ${question.deskripsi}`)
+      .addFields({ name: 'Soal', value: `\`\`\`${question.soal}\`\`\`` })
       .addFields(
-          { name: "Waktu", value: `⏳ ${(math.time / 1000).toFixed(0)} detik`, inline: true },
-          { name: "Hadiah", value: `💰 ${math.bonus.toLocaleString()}`, inline: true },
+          { name: "Waktu", value: `⏳ ${(time / 1000)} detik`, inline: true },
+          { name: "Hadiah", value: `💰 Poin`, inline: true },
           { name: "Kesempatan", value: `❤️ ${initialAttempts} kali`, inline: true }
       )
       .setFooter({ text: "Ketik jawabanmu langsung di channel ini!" });
 
-    await message.channel.send({ embeds: [gameEmbed] });
+    await loadingMessage.edit({ content: "Soal ditemukan!", embeds: [gameEmbed] });
 
-    // Buat collector
-    const collector = message.channel.createMessageCollector({ time: math.time });
+    const collector = message.channel.createMessageCollector({ time });
 
     gameSessions.set(channelId, {
-        result: math.result,
-        bonus: math.bonus,
+        answer: question.jawaban,
         attempts: initialAttempts,
-        collector: collector
+        collector: collector,
+        level: question.level
     });
 
     collector.on('collect', async msg => {
         if (msg.author.bot) return;
-
         const session = gameSessions.get(channelId);
         if (!session) return;
 
-        // Cek jika jawaban adalah angka (termasuk desimal dan negatif)
-        if (!/^-?[\d.]+$/.test(msg.content)) return;
+        const userNormalized = normalizeAnswer(msg.content);
+        const correctNormalized = normalizeAnswer(session.answer);
 
-        const userAnswer = parseFloat(msg.content);
-
-        if (userAnswer === session.result) {
-            await msg.reply(`✅ **Jawaban Benar!**\nSelamat, <@${msg.author.id}>! Kamu mendapatkan +${session.bonus.toLocaleString()} Poin!`);
+        if (userNormalized === correctNormalized) {
+            await msg.reply(`✅ **Jenius!**\nSelamat, <@${msg.author.id}>, kamu berhasil menjawab soal level **${session.level}**!`);
             collector.stop('correct');
         } else {
             session.attempts--;
             if (session.attempts <= 0) {
-                msg.reply(`❌ **Jawaban Salah!**\nKesempatan habis! Jawaban yang benar adalah **${session.result}**.`);
+                msg.reply(`❌ **Kesempatan Habis!**\nJawaban yang benar adalah:\n\`\`\`\n${session.answer}\n\`\`\``);
                 collector.stop('no_attempts');
             } else {
-                msg.reply(`❌ **Jawaban Salah!**\nMasih ada **${session.attempts}** kesempatan.`).then(replyMsg => {
-                    setTimeout(() => replyMsg.delete().catch(() => {}), 5000); // Hapus pesan setelah 5 detik
+                msg.react('❌');
+                msg.reply(`Jawaban salah! Masih ada **${session.attempts}** kesempatan.`).then(replyMsg => {
+                    setTimeout(() => replyMsg.delete().catch(() => {}), 7000);
                 });
             }
         }
@@ -147,11 +143,9 @@ module.exports = {
     collector.on('end', (collected, reason) => {
         const session = gameSessions.get(channelId);
         if (!session) return;
-
         if (reason === 'time') {
-            message.channel.send(`⏰ **Waktu habis!**\nJawaban yang benar adalah **${session.result}**.`);
+            message.channel.send(`⏰ **Waktu habis!**\nJawaban yang benar adalah:\n\`\`\`\n${session.answer}\n\`\`\``);
         }
-        
         gameSessions.delete(channelId);
     });
   }

@@ -2,18 +2,36 @@ require('dotenv').config(); // Tambahkan baris ini di paling atas file config.js
 
 module.exports = {
   // Bot Identity
-  botName: "BetaBotz", // Nama bot kamu
-  ownerID: "BetaBotz", // Ganti dengan Nama Kamu
+  botName: "AQUABOT", // Nama bot kamu
+  ownerID: "Dana putra", // Ganti dengan Nama Kamu
 
   // Discord Settings
-  token: process.env.DISCORD_BOT_TOKEN, 
-  // buat file dengan nama .env dan isi dengan DISCORD
-  // DISCORD_BOT_TOKEN=""
-  // API_KEY_LANN=""
-
-
+  token: process.env.DISCORD_BOT_TOKEN, // Mengambil token dari .env
   prefix: "!", // Prefix utama untuk bot ini
-  guildID: "wajib di isi", // ID server tempat bot ini berada
+
+  clientId:  "wajib di isi", // ID client bot ini
+
+  //ini pakai kalau misal nya slash / command mau di 1 server aja
+  guildID: "", // ID server tempat bot ini berada
+
+  //fitru braodcast yang bakal di kirim ke beberapa ch yang di input
+  broadcastChannels: [
+        "isi ch nya"
+    ],
+
+    //auto DL
+  autoDownload: {
+        // Daftarkan semua ID SERVER tempat fitur ini boleh aktif
+        enabledServers: [
+            "ini buat server", // Ganti dengan ID SERVER (GUILD ID) Anda
+            "ini buat server"
+        ],
+        // (Opsional) Daftarkan ID CHANNEL yang ingin dikecualikan di server tersebut
+        excludedChannels: [
+            "ini buat channel", 
+            "ini buat channel"
+        ]
+    },
 
   // API Keys
   apikey_lann: process.env.API_KEY_LANN, // Mengambil API key dari .env
@@ -22,18 +40,19 @@ module.exports = {
   apikey_dana: process.env.API_KEY_DANA, // Mengambil API key dari .env
   // kamu bisa dapat apikey ini dengan beli di https://api.danafxc.my.id atau ke nomor WhatsApp 081289694906
 
-  // buat file dengan nama .env dan isi dengan DISCORD
-  // DISCORD_BOT_TOKEN=""
-  // API_KEY_LANN=""
 
-  reminderChannelIds: [
-        'wajib di isi',
-        'wajib di isi',
-        // Add more channel IDs as needed
-    ],
-  ownerId: 'wajib di isi',
-  ilabChannelId: 'wajib di isi',
-  // Menu & Feature Settings
+  // =========== di bawah ini tidak usah ==============
+  // reminderChannelIds: [
+  //       '1391419433741979819',
+  //       '1294278656818024545',
+  //       // Add more channel IDs as needed
+  //   ],
+  // ownerId: '686498842560168043',
+  // ilabChannelId: 'wajib di isi',
+  // // Menu & Feature Settings
+
+
+
   menuPublic: false, // Apakah menu public aktif?
 
   // Channel IDs

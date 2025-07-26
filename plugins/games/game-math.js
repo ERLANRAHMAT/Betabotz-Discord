@@ -2,9 +2,28 @@ const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-fetch');
 const config = require("../../config");
 
+// --- Tambahan untuk sistem money ---
+const { db, ensureUser } = require('../../database.js'); // Pastikan handler.js ada dan sesuai
+
 const gameSessions = new Map();
 const initialAttempts = 3;
 const apiUrl = `https://api.danafxc.my.id/api/math?apikey=${config.apikey_dana}`;
+
+// --- Konfigurasi Hadiah & Denda ---
+const rewardAmounts = {
+    noob: 1000,
+    easy: 5000,
+    medium: 25000,
+    hard: 75000,
+    master: 150000,
+    grandmaster: 300000,
+    legendary: 500000,
+    mythic: 750000,
+    god: 1000000,
+};
+const penaltyAmount = 1000; // Denda jika kalah
+const defaultReward = 10000;
+// ---
 
 // --- Konfigurasi Waktu Baru untuk Semua Level ---
 const timeLimits = {
@@ -75,6 +94,14 @@ module.exports = {
         return loadingHelp.edit({ content: null, embeds: [helpEmbed] });
     }
 
+    // ==================== Tambahan: Cek saldo sebelum main ====================
+    ensureUser(message.author.id, message.author.username);
+    const userMoney = db.users[message.author.id].money || 0;
+    if (userMoney < penaltyAmount) {
+        return message.reply(`💰 Uangmu tidak cukup untuk bermain. Kamu butuh setidaknya **${penaltyAmount.toLocaleString('id-ID')}** Money untuk menanggung denda jika kalah.`);
+    }
+    // ==================== Akhir tambahan ====================
+
     if (gameSessions.has(channelId)) {
         return message.reply("❗ Masih ada soal matematika yang belum terjawab di channel ini.");
     }
@@ -91,6 +118,7 @@ module.exports = {
 
     const question = questionsForLevel[Math.floor(Math.random() * questionsForLevel.length)];
     const time = timeLimits[question.level] || defaultTime;
+    const reward = rewardAmounts[question.level] || defaultReward;
 
     const gameEmbed = new EmbedBuilder()
       .setColor(0xF1C40F)
@@ -99,8 +127,9 @@ module.exports = {
       .addFields({ name: 'Soal', value: `\`\`\`${question.soal}\`\`\`` })
       .addFields(
           { name: "Waktu", value: `⏳ ${(time / 1000)} detik`, inline: true },
-          { name: "Hadiah", value: `💰 Poin`, inline: true },
-          { name: "Kesempatan", value: `❤️ ${initialAttempts} kali`, inline: true }
+          { name: "Hadiah", value: `💰 ${reward.toLocaleString('id-ID')}`, inline: true },
+          { name: "Denda", value: `💸 ${penaltyAmount.toLocaleString('id-ID')}`, inline: true },
+          { name: "Kesempatan", value: `❤️ ${initialAttempts} kali`, inline: false }
       )
       .setFooter({ text: "Ketik jawabanmu langsung di channel ini!" });
 
@@ -112,7 +141,10 @@ module.exports = {
         answer: question.jawaban,
         attempts: initialAttempts,
         collector: collector,
-        level: question.level
+        level: question.level,
+        reward: reward,
+        penalty: penaltyAmount,
+        playerId: message.author.id // Simpan id pemain
     });
 
     collector.on('collect', async msg => {
@@ -124,12 +156,16 @@ module.exports = {
         const correctNormalized = normalizeAnswer(session.answer);
 
         if (userNormalized === correctNormalized) {
-            await msg.reply(`✅ **Jenius!**\nSelamat, <@${msg.author.id}>, kamu berhasil menjawab soal level **${session.level}**!`);
+            // Tambah money ke user yang benar
+            db.users[msg.author.id].money = (db.users[msg.author.id].money || 0) + session.reward;
+            await msg.reply(`✅ **Jenius!**\nSelamat, <@${msg.author.id}>, kamu berhasil menjawab soal level **${session.level}** dan mendapatkan +**${session.reward.toLocaleString('id-ID')}** Money!`);
             collector.stop('correct');
         } else {
             session.attempts--;
             if (session.attempts <= 0) {
-                msg.reply(`❌ **Kesempatan Habis!**\nJawaban yang benar adalah:\n\`\`\`\n${session.answer}\n\`\`\``);
+                // Kurangi money user yang main (bukan yang jawab terakhir)
+                db.users[session.playerId].money = Math.max(0, (db.users[session.playerId].money || 0) - session.penalty);
+                msg.reply(`❌ **Kesempatan Habis!**\nJawaban yang benar adalah:\n\`\`\`\n${session.answer}\n\`\`\`\nKamu kehilangan **${session.penalty.toLocaleString('id-ID')}** Money.`);
                 collector.stop('no_attempts');
             } else {
                 msg.react('❌');
@@ -144,7 +180,9 @@ module.exports = {
         const session = gameSessions.get(channelId);
         if (!session) return;
         if (reason === 'time') {
-            message.channel.send(`⏰ **Waktu habis!**\nJawaban yang benar adalah:\n\`\`\`\n${session.answer}\n\`\`\``);
+            // Kurangi money user yang main jika waktu habis
+            db.users[session.playerId].money = Math.max(0, (db.users[session.playerId].money || 0) - session.penalty);
+            message.channel.send(`⏰ **Waktu habis!**\nJawaban yang benar adalah:\n\`\`\`\n${session.answer}\n\`\`\`\nKamu kehilangan **${session.penalty.toLocaleString('id-ID')}** Money.`);
         }
         gameSessions.delete(channelId);
     });

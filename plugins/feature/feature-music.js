@@ -280,6 +280,6 @@ module.exports = {
     stop: { handler: handleStop, aliases: ["end", "quit", "leave"] },
     pause: { handler: handlePause, aliases: [] },
     resume: { handler: handleResume, aliases: ["continue"] },
-    queue: { handler: handleQueue, aliases: ["q", "list", "playlist", "np", "nowplaying"] },
+    queue: { handler: handleQueue, aliases: ["list", "playlist", "np", "nowplaying"] },
   },
 };

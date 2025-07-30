@@ -5,41 +5,46 @@ module.exports = {
   botName: "AQUABOT", // Nama bot kamu
   ownerID: "Dana putra", // Ganti dengan Nama Kamu
 
+  //API DATABASE RPG
+  api: {
+        baseUrl: "https://api.danafxc.my.id/api",   // kamu bisa dapat apikey ini dengan beli di https://api.danafxc.my.id/Price-api
+        apiKey: process.env.API_KEY_DANA, 
+    },
+
   // Discord Settings
   token: process.env.DISCORD_BOT_TOKEN, // Mengambil token dari .env
   prefix: "!", // Prefix utama untuk bot ini
 
-  clientId:  "wajib di isi", // ID client bot ini
-
-  //ini pakai kalau misal nya slash / command mau di 1 server aja
+  clientId:  "", //client ID bot kamu
+  
+  //ini pakai kalau misal nya slash / command mau di 1 server aja, optional
   guildID: "", // ID server tempat bot ini berada
 
-  //fitru braodcast yang bakal di kirim ke beberapa ch yang di input
+  //fitur braodcast yang bakal di kirim ke beberapa ch yang di input
   broadcastChannels: [
-        "isi ch nya"
+        ""
     ],
 
     //auto DL
   autoDownload: {
         // Daftarkan semua ID SERVER tempat fitur ini boleh aktif
         enabledServers: [
-            "ini buat server", // Ganti dengan ID SERVER (GUILD ID) Anda
-            "ini buat server"
+            "", // Ganti dengan ID SERVER (GUILD ID) Anda
+            ""
         ],
         // (Opsional) Daftarkan ID CHANNEL yang ingin dikecualikan di server tersebut
         excludedChannels: [
-            "ini buat channel", 
-            "ini buat channel"
+            "", 
+            ""
         ]
     },
 
   // API Keys
   apikey_lann: process.env.API_KEY_LANN, // Mengambil API key dari .env
-  // kamu bisa dapat apikey ini dengan beli di https://api.betabotz.eu.org
+// kamu bisa dapat apikey ini dengan beli di https://api.danafxc.my.id/Price-api
 
   apikey_dana: process.env.API_KEY_DANA, // Mengambil API key dari .env
-  // kamu bisa dapat apikey ini dengan beli di https://api.danafxc.my.id atau ke nomor WhatsApp 081289694906
-
+// kamu bisa dapat apikey ini dengan beli di https://api.danafxc.my.id/Price-api
 
   // =========== di bawah ini tidak usah ==============
   // reminderChannelIds: [

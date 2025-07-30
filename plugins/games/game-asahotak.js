@@ -1,164 +1,150 @@
 const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-fetch');
-const config = require('../../config');
+const similarity = require('similarity');
+const config = require("../../config");
+const api = require('../../api_handler.js'); 
 
-const timeout = 100000;
-const threshold = 0.72; // Ambang batas kemiripan untuk 'Dikit Lagi!'
-const similarity = require('similarity'); // Pastikan ini terinstall: npm install similarity
+const gameState = new Map();
+const gameTimeout = 100000;
+const rewardPoint = 10000;
+const penaltyAmount = 500;
+const threshold = 0.72;
 
-const gameState = new Map(); // Menyimpan status permainan per channel
-
-module.exports = {
-  prefix: "asahotak", // Perintah utama untuk memulai game
-  category: "game",
-  aliases: ["ao", "brainteaser"], // Alias untuk perintah utama
-  /**
-   * Fungsi eksekusi untuk perintah !asahotak
-   * @param {import('discord.js').Message} message
-   * @param {string[]} args
-   * @param {import('discord.js').Client} client
-   */
-  async execute(message, args, client) {
-    const channelId = message.channel.id;
-    // Cek apakah sudah ada game aktif di channel ini
-    if (gameState.has(channelId)) {
-      const state = gameState.get(channelId);
-      // Jika game aktif dan belum dijawab, beritahu user
-      if (!state.answered) {
-        return message.reply({
-          content: 'Masih ada soal belum terjawab di channel ini!\nSilakan jawab soal sebelumnya atau tunggu waktu habis.',
-          allowedMentions: { repliedUser: false }
-        });
-      } else { // Jika game aktif tapi sudah dijawab (kasus aneh, mungkin ada bug sebelumnya)
-          // Bersihkan state lama dan mulai game baru
-          clearTimeout(state.timeoutObj);
-          gameState.delete(channelId);
-          console.log(`[ASAHOTAK] Cleaned up old answered game state for channel ${channelId}.`);
-      }
-    }
-
-    // Ambil soal dari API
-    let json;
+async function fetchQuestion() {
     try {
         const res = await fetch(`https://api.betabotz.eu.org/api/game/asahotak?apikey=${config.apikey_lann}`);
-        if (!res.ok) {
-            throw new Error(`API response not OK: ${res.status} ${res.statusText}`);
-        }
+        if (!res.ok) throw new Error(`API response not OK: ${res.status}`);
         const data = await res.json();
-        if (!Array.isArray(data) || data.length === 0) {
-            throw new Error("API tidak mengembalikan data soal yang valid.");
-        }
-        json = data[Math.floor(Math.random() * data.length)]; // Ambil soal acak
+        if (!Array.isArray(data) || data.length === 0) throw new Error("API tidak mengembalikan data soal.");
+        return data[Math.floor(Math.random() * data.length)];
     } catch (e) {
-        console.error(`[ASAHOTAK] Gagal mengambil soal dari API:`, e);
-        return message.reply({
-            content: `❌ Gagal memuat soal asah otak: ${e.message || e}`,
-            allowedMentions: { repliedUser: false }
-        });
+        console.error(`[ASAHOTAK] Gagal mengambil soal:`, e);
+        return null;
     }
+}
 
-    const soal = json.soal;
-    const jawaban = json.jawaban;
+module.exports = {
+  prefix: "asahotak",
+  category: "games",
+  aliases: ["ao"],
+    
+  async execute(message, args, client) {
+    const channelId = message.channel.id;
+    const authorId = message.author.id;
+    const authorUsername = message.author.username;
 
-    const embed = new EmbedBuilder()
-      .setColor(0x2ecc71)
-      .setTitle("🧠 Asah Otak")
-      .setDescription(`**Soal:** ${soal}`) // Tambahkan label 'Soal:'
-      .addFields(
-        { name: "Timeout", value: `${(timeout / 1000).toFixed(0)} detik`, inline: true }, // Format tanpa desimal
-        { name: "Bantuan", value: `Ketik \`${config.prefix}toka\` untuk bantuan (clue)`, inline: false }, // Gunakan prefix bot dan nama perintah utama
-        { name: "Jawab", value: "Balas/reply soal ini untuk menjawab", inline: false }
-      );
-
-    const sentMsg = await message.reply({ embeds: [embed] });
-
-    // Set timeout untuk soal
-    const timeoutObj = setTimeout(async () => {
-      if (gameState.has(channelId)) {
-        const currentState = gameState.get(channelId);
-        // Pastikan soal belum dijawab sebelum mengirim pesan waktu habis
-        if (!currentState.answered) {
-            await message.channel.send(`⏰ Waktu habis!\nJawabannya adalah **${jawaban}**`);
+    try {
+        const authorData = await api.getUser(authorId, authorUsername);
+        if (authorData.money < penaltyAmount) {
+            return message.reply(`💰 Uangmu tidak cukup untuk bermain. Butuh **${penaltyAmount.toLocaleString('id-ID')}** Money.`);
         }
-        gameState.delete(channelId); // Hapus state setelah waktu habis
-      }
-    }, timeout);
 
-    // Simpan status game untuk channel ini
-    gameState.set(channelId, {
-      soal,
-      jawaban,
-      timeoutObj,
-      messageId: sentMsg.id, // ID pesan soal bot
-      answered: false // Status apakah soal sudah dijawab
-    });
-    console.log(`[ASAHOTAK] Game started in channel ${channelId}. Soal: "${soal}" Jawaban: "${jawaban}"`);
+        if (gameState.has(channelId) && !gameState.get(channelId).answered) {
+            return message.reply('Masih ada soal belum terjawab di channel ini!');
+        }
+
+        const question = await fetchQuestion();
+        if (!question) return message.reply(`❌ Gagal memuat soal asah otak.`);
+
+        const embed = new EmbedBuilder()
+          .setColor(0x2ecc71).setTitle("🧠 Asah Otak")
+          .setDescription(`**Soal:** ${question.soal}`)
+          .addFields(
+            { name: "Waktu", value: `${(gameTimeout / 1000).toFixed(0)} detik`, inline: true },
+            { name: "Hadiah", value: `💰 ${rewardPoint.toLocaleString('id-ID')}`, inline: true },
+            { name: "Bantuan", value: `Ketik \`!toka\``, inline: false }
+          );
+
+        const sentMsg = await message.reply({ embeds: [embed] });
+
+        const timeoutObj = setTimeout(async () => {
+            if (gameState.has(channelId)) {
+                const session = gameState.get(channelId);
+                try {
+                    const authorDataOnEnd = await api.getUser(authorId, authorUsername);
+                    authorDataOnEnd.money = Math.max(0, authorDataOnEnd.money - penaltyAmount);
+                    await api.updateUser(authorId, authorDataOnEnd);
+                    await message.channel.send(`⏰ Waktu habis! Jawaban: **${session.jawaban}**.\nKamu kehilangan **${penaltyAmount.toLocaleString('id-ID')}** Money.`);
+                } catch (e) {
+                    await message.channel.send(`⏰ Waktu habis! Jawaban: **${session.jawaban}**.`);
+                }
+                gameState.delete(channelId);
+            }
+        }, gameTimeout);
+
+        gameState.set(channelId, {
+          jawaban: question.jawaban,
+          timeoutObj,
+          answered: false,
+          playerId: authorId, 
+          playerUsername: authorUsername 
+        });
+
+    } catch (error) {
+        console.error("[ASAHOTAK CMD ERROR]", error);
+        message.reply(`❌ Terjadi kesalahan: ${error.message}`);
+    }
   },
 
   subCommands: {
     toka: { 
-        handler: async (message, args, client) => { // Menggunakan 'handler' untuk konsistensi
+        handler: async (message) => {
             const channelId = message.channel.id;
-            if (!gameState.has(channelId)) {
-                return message.reply("Tidak ada soal asah otak aktif di channel ini.");
-            }
+            if (!gameState.has(channelId)) return message.reply("Tidak ada soal asah otak aktif.");
             const { jawaban } = gameState.get(channelId);
-            // Clue: ganti semua konsonan dengan _
             const clue = jawaban.replace(/[bcdfghjklmnpqrstvwxyz]/gi, '_');
-            await message.reply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xF1C40F)
-                        .setTitle("💡 Bantuan Soal Asah Otak")
-                        .setDescription(`\`\`\`${clue}\`\`\``)
-                        .setFooter({ text: "Hanya konsonan yang diganti." })
-                ],
-                allowedMentions: { repliedUser: false }
-            });
-            console.log(`[ASAHOTAK] Clue requested in channel ${channelId}. Clue: "${clue}"`);
-        },
-        description: "Mendapatkan bantuan (clue) untuk soal asah otak.",
-        aliases: ["clue", "hint"]
+            await message.reply(`**Bantuan:** \`${clue}\``);
+        }
     }
   },
-  // ====================================================
 
-  // Message handler untuk memeriksa jawaban
   async handleMessage(message, client) {
     const channelId = message.channel.id;
-    // Hanya proses jika ada game aktif di channel ini
-    if (!gameState.has(channelId)) return;
+    if (!gameState.has(channelId) || message.author.bot) return;
 
     const state = gameState.get(channelId);
-    // Abaikan jika game sudah dijawab
     if (state.answered) return;
 
-    // Cek jika pesan adalah balasan ke pesan soal bot
-    if (
-      message.reference &&
-      message.reference.messageId &&
-      message.reference.messageId === state.messageId
-    ) {
-      const userAnswer = message.content.trim();
-      if (!userAnswer) return; // Abaikan pesan kosong
+    if (message.content.startsWith(config.prefix)) {
+        if (message.content.toLowerCase().startsWith(`${config.prefix}toka`)) return;
+        if (message.content.toLowerCase() === `${config.prefix}suren`) {
+            clearTimeout(state.timeoutObj);
+            state.answered = true;
+            gameState.delete(channelId);
+            try {
+                const authorDataOnEnd = await api.getUser(state.playerId, state.playerUsername);
+                authorDataOnEnd.money = Math.max(0, authorDataOnEnd.money - penaltyAmount);
+                await api.updateUser(state.playerId, authorDataOnEnd);
+                await message.reply(`Kamu menyerah... Jawabannya adalah **${state.jawaban}**.\nKamu kehilangan **${penaltyAmount.toLocaleString('id-ID')}** Money.`);
+            } catch (e) {
+                await message.reply(`Kamu menyerah... Jawabannya adalah **${state.jawaban}**.`);
+            }
+            return;
+        }
+        return; // Abaikan perintah lain
+    }
+    
+    const userAnswer = message.content.trim();
+    if (!userAnswer) return;
 
-      console.log(`[ASAHOTAK] User ${message.author.tag} in ${channelId} answered: "${userAnswer}"`);
-      console.log(`[ASAHOTAK] Correct answer: "${state.jawaban}"`);
-      
-      // Periksa jawaban
-      if (userAnswer.toLowerCase() === state.jawaban.toLowerCase().trim()) {
-        clearTimeout(state.timeoutObj); // Hentikan timer
-        state.answered = true; // Tandai sudah dijawab
-        gameState.delete(channelId); // Hapus state game dari map
-        await message.reply(`✅ **Benar!** Jawabannya adalah **${state.jawaban}**`); // Konfirmasi jawaban
-        console.log(`[ASAHOTAK] Correct answer by ${message.author.tag} in ${channelId}. Game finished.`);
-      } else if (similarity(userAnswer.toLowerCase(), state.jawaban.toLowerCase().trim()) >= threshold) {
+    if (userAnswer.toLowerCase() === state.jawaban.toLowerCase().trim()) {
+        clearTimeout(state.timeoutObj);
+        state.answered = true;
+        gameState.delete(channelId);
+        
+        try {
+            const winnerData = await api.getUser(message.author.id, message.author.username);
+            winnerData.money += rewardPoint;
+            await api.updateUser(message.author.id, winnerData);
+            await message.reply(`✅ **Benar!** Jawabannya **${state.jawaban}**.\nSelamat <@${message.author.id}>, kamu dapat +**${rewardPoint.toLocaleString('id-ID')}** Money!`);
+        } catch (error) {
+            await message.reply(`✅ **Benar!** Jawabannya adalah **${state.jawaban}**.\n*(Gagal menyimpan hadiah ke database.)*`);
+        }
+
+    } else if (similarity(userAnswer.toLowerCase(), state.jawaban.toLowerCase().trim()) >= threshold) {
         await message.reply(`*Dikit Lagi!*`);
-        console.log(`[ASAHOTAK] Close answer by ${message.author.tag} in ${channelId}.`);
-      } else {
-        await message.reply(`*Salah!*`);
-        console.log(`[ASAHOTAK] Incorrect answer by ${message.author.tag} in ${channelId}.`);
-      }
+    } else {
+        await message.react('❌');
     }
   }
 };

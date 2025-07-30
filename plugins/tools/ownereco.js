@@ -1,8 +1,9 @@
-const { db, ensureUser } = require('../../database.js');
+const { EmbedBuilder } = require('discord.js');
 const config = require('../../config');
+const api = require('../../api_handler.js'); // <-- Mengimpor handler API
 
 module.exports = {
-  prefix: "eco", // Perintah utama (tidak akan banyak digunakan)
+  prefix: "eco",
   category: "owner",
   aliases: ["addmoney", "addlimit", "setmoney", "setlimit"],
   
@@ -19,26 +20,37 @@ module.exports = {
         return message.reply(`Contoh penggunaan:\n\`!${command} @user <jumlah>\``);
     }
     
-    // Pastikan user ada di database
-    ensureUser(target.id, target.username);
+    const processingMsg = await message.reply(`⏳ Memproses permintaan untuk **${target.username}**...`);
 
-    switch (command) {
-        case 'addmoney':
-            db.users[target.id].money += amount;
-            message.reply(`✅ Berhasil menambahkan **${amount.toLocaleString()}** money ke **${target.username}**. Total sekarang: ${db.users[target.id].money.toLocaleString()}`);
-            break;
-        case 'addlimit':
-            db.users[target.id].limit += amount;
-            message.reply(`✅ Berhasil menambahkan **${amount}** limit ke **${target.username}**. Total sekarang: ${db.users[target.id].limit}`);
-            break;
-        case 'setmoney':
-            db.users[target.id].money = amount;
-            message.reply(`✅ Berhasil mengatur money **${target.username}** menjadi **${amount.toLocaleString()}**.`);
-            break;
-        case 'setlimit':
-            db.users[target.id].limit = amount;
-            message.reply(`✅ Berhasil mengatur limit **${target.username}** menjadi **${amount}**.`);
-            break;
+    try {
+        const userData = await api.getUser(target.id, target.username);
+
+        let replyMessage = "";
+        switch (command) {
+            case 'addmoney':
+                userData.money += amount;
+                replyMessage = `✅ Berhasil menambahkan **${amount.toLocaleString('id-ID')}** money ke **${target.username}**.\nTotal sekarang: ${userData.money.toLocaleString('id-ID')}`;
+                break;
+            case 'addlimit':
+                userData.limit += amount;
+                replyMessage = `✅ Berhasil menambahkan **${amount}** limit ke **${target.username}**.\nTotal sekarang: ${userData.limit}`;
+                break;
+            case 'setmoney':
+                userData.money = amount;
+                replyMessage = `✅ Berhasil mengatur money **${target.username}** menjadi **${amount.toLocaleString('id-ID')}**.`;
+                break;
+            case 'setlimit':
+                userData.limit = amount;
+                replyMessage = `✅ Berhasil mengatur limit **${target.username}** menjadi **${amount}**.`;
+                break;
+        }
+
+        await api.updateUser(target.id, userData);
+        await processingMsg.edit(replyMessage);
+
+    } catch (error) {
+        console.error(`[ECO CMD ERROR] Perintah ${command}:`, error);
+        await processingMsg.edit(`❌ Terjadi kesalahan saat memproses data: ${error.message}`);
     }
   },
 };

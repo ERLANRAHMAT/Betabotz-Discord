@@ -5,6 +5,7 @@ const { exec } = require('child_process');
 const util = require('util');
 const config = require('../../config');
 
+// Mengubah exec menjadi fungsi berbasis Promise
 const execPromise = util.promisify(exec);
 
 module.exports = {

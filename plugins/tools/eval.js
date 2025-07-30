@@ -5,7 +5,6 @@ const util = require('util');
 const config = require('../../config');
 
 module.exports = {
-
   prefix: "eval",
   category: "tools",
   aliases: ["e", "evaluate"],

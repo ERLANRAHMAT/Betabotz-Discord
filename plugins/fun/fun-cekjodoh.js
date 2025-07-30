@@ -25,7 +25,7 @@ module.exports = {
     .addUserOption(option => 
       option.setName('target')
             .setDescription('Pilih pengguna untuk diramal jodohnya (opsional)')
-            .setRequired(false)), 
+            .setRequired(false)), // Argumen ini tidak wajib diisi
   
   category: 'fun',
   

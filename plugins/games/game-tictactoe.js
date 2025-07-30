@@ -2,7 +2,6 @@ const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentTyp
 
 const gameSessions = new Map();
 
-// --- Kelas Logika Game Tic Tac Toe (Tidak ada perubahan) ---
 class TicTacToeGame {
     constructor(playerX, playerO) {
         this.playerX = playerX;

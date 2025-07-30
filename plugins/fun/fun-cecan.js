@@ -28,7 +28,7 @@ module.exports = {
       option.setName('kategori')
             .setDescription('Pilih kategori gambar yang diinginkan')
             .setRequired(true)
-            .addChoices(...categories)), 
+            .addChoices(...categories)), // Menambahkan pilihan dari array di atas
   
   category: "fun",
   

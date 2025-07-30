@@ -20,6 +20,7 @@ module.exports = {
     const processingMessage = await message.reply({ embeds: [initialEmbed] });
 
     try {
+      // Menjalankan perintah dengan flag --secure untuk memastikan URL menggunakan https jika memungkinkan
       const { stdout, stderr } = await execPromise('speedtest-cli --simple --share --secure');
 
       if (stderr) {
@@ -28,7 +29,6 @@ module.exports = {
       }
 
       let imageUrl = null;
-      
       const regex = /^Share results:\s*(https?:\/\/\S+)/im;
       const match = stdout.match(regex);
 

@@ -8,6 +8,7 @@ Bot Discord multifungsi berbasis Node.js yang modern dan kaya fitur. Dibuat untu
 
 | Ikon | Fitur                               | Deskripsi Singkat                                                                                                |
 | :--: | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+|  ⚔️  | **RPG** | **Fiftur RPG di Bot Diccord Dengan sistem DB terpusat** |
 |  💖  | **Waifu Gacha & Collection** | **(Fitur Utama)** Sistem gacha waifu dari API danafxc! Termasuk galeri gambar, klaim, nikah (permanen), peringkat, dan limit harian. |
 |  🎵  | **Sistem Musik Hybrid** | Memutar musik dari YouTube, dan secara cerdas menggunakan API cadangan untuk link Spotify & SoundCloud yang bermasalah. |
 |  🃏  | **Game Multiplayer Interaktif** | Mainkan game seperti **Qiu Qiu** dengan sistem taruhan, **Tic Tac Toe**, **Hompimpa**, dan **Coinflip** antar pemain.    |

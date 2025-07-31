@@ -4,9 +4,11 @@ Bot Discord multifungsi berbasis Node.js yang modern dan kaya fitur. Dibuat untu
 
 ---
 ## ✨ Link Tutorial Setup
-| Ikon | Link                               |
+
+| Ikon | Link                               | Deskripsi Singkat                                                                                                |
 | :--: | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| ▶️   |  https://youtu.be/Eog1H1CiAHw   |        
+|  ▶️  | **https://youtu.be/Eog1H1CiAHw** | **Video tutorial setup** |
+ 
 
 ## ✨ Fitur Unggulan
 

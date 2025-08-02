@@ -21,7 +21,7 @@ Bot Discord multifungsi berbasis Node.js yang modern dan kaya fitur. Dibuat untu
 ## 📚 Daftar Perintah Lengkap
 
 ### 🎮 Game
-- `/waifu <sub-command>`: Sistem Gacha Waifu.
+- `!waifu <sub-command>`: Sistem Gacha Waifu.
 - `!qiu <start/join/deal/end>`: Game kartu Qiu Qiu (2-10 pemain) dengan taruhan.
 - `!tictactoe @user`: Main Tic Tac Toe dengan teman.
 - `!hompimpa <start/join/play>`: Game Hompimpa untuk menentukan pemenang/pecundang.
@@ -56,68 +56,13 @@ Bot Discord multifungsi berbasis Node.js yang modern dan kaya fitur. Dibuat untu
 
 ---
 
+### Isi dari .env
 
-## 🛠️ Cara Membuat Bot Discord dari Awal
-
-### 1. Login ke Discord Developer Portal
-
-- Buka [https://discord.com/developers/applications](https://discord.com/developers/applications)
-- Login dengan akun Discord kamu.
-
-### 2. Buat Aplikasi Baru
-
-- Klik tombol **"New Application"**.
-- Isi nama aplikasi (bebas, misal: `BetaBotz`) lalu klik **"Create"**.
-
-### 3. Buat Bot
-
-- Di sidebar kiri, klik menu **"Bot"**.
-- Klik tombol **"Add Bot"** lalu **"Yes, do it!"**.
-- (Opsional) Ganti nama dan avatar bot sesuai keinginan.
-
-### 4. Ambil Token Bot
-
-- Di halaman Bot, klik **"Reset Token"** lalu **"Yes, do it!"**.
-- Klik **"Copy"** untuk menyalin token bot.
-- **Jangan bagikan token ke siapapun!**
-- Masukkan token ini ke file `config.js` pada bagian `token`.
-
-### 5. Atur Permissions Bot
-
-- Masih di halaman Bot, scroll ke bagian **Privileged Gateway Intents**.
-- Aktifkan **MESSAGE CONTENT INTENT** (dan intents lain jika dibutuhkan).
-- Klik **Save Changes**.
-
-### 6. Invite Bot ke Server
-
-- Di sidebar kiri, klik menu **"OAuth2"** > **"URL Generator"**.
-- Centang **"bot"** di bagian scopes.
-- Di bagian **Bot Permissions**, centang permission yang dibutuhkan, misal:
-  - `Send Messages`
-  - `Read Messages/View Channels`
-  - `Attach Files`
-  - `Embed Links`
-  - `Manage Messages` (opsional)
-- Copy URL yang muncul di bawah, lalu buka di browser.
-- Pilih server yang kamu kelola, klik **"Authorize"**.
-
-### 7. Jalankan Bot
-
-- Pastikan sudah mengisi `config.js` dengan benar (token, prefix, apikey, dsb).
-- Jalankan bot dengan:
   ```bash
-  npm start
+DISCORD_BOT_TOKEN=" Token bot kmau"
+API_KEY_LANN=" apikey betabotz "
+API_KEY_DANA=" apikey dana api "
   ```
-- Atau dengan Pm2:
-  ```bash
-  pm2 start "npm start" --name aquabotdc && pm2 save && pm2 logs
-  ```
-- Atau dengan Docker:
-  ```bash
-  docker compose up -d
-  ```
-- Jika berhasil, bot akan online di server Discord kamu.
-
 ---
 
 ## ⚠️ Catatan

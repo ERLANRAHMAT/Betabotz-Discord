@@ -41,10 +41,17 @@ module.exports = {
 
   // API Keys
   apikey_lann: process.env.API_KEY_LANN, // Mengambil API key dari .env
-// kamu bisa dapat apikey ini dengan beli di https://api.danafxc.my.id/Price-api
+// kamu bisa dapat apikey ini dengan beli di https://api.betabotz.eu.org
 
   apikey_dana: process.env.API_KEY_DANA, // Mengambil API key dari .env
 // kamu bisa dapat apikey ini dengan beli di https://api.danafxc.my.id/Price-api
+
+// ============== .env ==============
+//DISCORD_BOT_TOKEN=""
+//API_KEY_LANN=""
+//API_KEY_DANA=""
+
+
 
   // =========== di bawah ini tidak usah ==============
   // reminderChannelIds: [
@@ -52,7 +59,7 @@ module.exports = {
   //       '1294278656818024545',
   //       // Add more channel IDs as needed
   //   ],
-  // ownerId: '686498842560168043',
+   ownerId: '686498842560168043',
   // ilabChannelId: 'wajib di isi',
   // // Menu & Feature Settings
 

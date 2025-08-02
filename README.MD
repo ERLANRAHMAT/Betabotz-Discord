@@ -67,7 +67,7 @@ Bot Discord multifungsi berbasis Node.js yang modern dan kaya fitur. Dibuat untu
   ```bash
 DISCORD_BOT_TOKEN=" Token bot kmau"
 API_KEY_LANN=" apikey betabotz "
-API_KEY_DANA=" apikey dana api "
+API_KEY_DANA=" apikey danafxc api "
   ```
 ---
 

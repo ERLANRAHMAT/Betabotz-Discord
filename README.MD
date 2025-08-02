@@ -20,7 +20,7 @@ Bot Discord multifungsi berbasis Node.js yang modern dan kaya fitur. Dibuat untu
 |  🃏  | **Game Multiplayer Interaktif** | Mainkan game seperti **Qiu Qiu** dengan sistem taruhan, **Tic Tac Toe**, **Hompimpa**, dan **Coinflip** antar pemain.    |
 |  ⬇️  | **Auto-Downloader Media** | Secara otomatis mengunduh video & gambar dari link TikTok, Instagram, Facebook, Twitter, dll. di channel tertentu. |
 |  👑  | **Fitur Khusus Owner** | Akses aman ke terminal server (`$ exec`) dan eksekusi kode JavaScript (`!eval`) langsung dari Discord.        |
-|  🛡️  | **Moderasi & Database Terpusat** | Sistem ban permanen, filter kata kasar per-server, dan sistem ekonomi (`money` & `limit`) yang tersimpan di `database.json`. |
+|  🛡️  | **Moderasi & Database Terpusat** | Sistem ban permanen, filter kata kasar per-server, dan sistem ekonomi (`money` & `limit`) yang tersimpan di Database. |
 
 ---
 

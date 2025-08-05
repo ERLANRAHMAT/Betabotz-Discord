@@ -24,7 +24,7 @@ async function fetchLeaderboard(type) {
 module.exports = {
   prefix: "leaderboard",
   category: "rpg",
-  aliases: ["lb", "top"],
+  aliases: ["lb", "top", "rank"],
   
  async execute(message, args, client) {
     const type = args[0]?.toLowerCase();
@@ -44,8 +44,11 @@ module.exports = {
     const processingMsg = await message.reply(`🏅 Mengambil data peringkat untuk **${type.toUpperCase()}**...`);
 
     try {
+        // ==================== PERBAIKAN DI SINI ====================
+        // Menyesuaikan 'type' yang dikirim ke API sesuai instruksi Anda
         const apiType = (type === 'eco') ? 'money' : 'level';
         const leaderboardData = await fetchLeaderboard(apiType);
+        // ==================== AKHIR PERBAIKAN ====================
 
         if (!leaderboardData || leaderboardData.length === 0) {
             return processingMsg.edit("Papan peringkat saat ini kosong.");

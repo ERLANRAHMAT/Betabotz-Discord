@@ -6,6 +6,7 @@ const api = require('../../api_handler.js');
 const weeklyMoneyReward = 100000;
 const weeklyLimitReward = 10;
 const weeklydiamondtReward = 1;
+const weeklyExp = 300; 
 const cooldown = 604800000; // 7 hari dalam milidetik
 
 // Fungsi untuk format waktu (Tetap Sama)
@@ -32,7 +33,7 @@ module.exports = {
     const processingMsg = await message.reply("⏳ Memeriksa data mingguanmu...");
 
     try {
-        // --- LOGIKA BARU DENGAN API ---
+
 
         // 1. GET: Ambil data user terbaru dari API
         const userData = await api.getUser(authorId, authorUsername);
@@ -50,6 +51,7 @@ module.exports = {
         userData.money += weeklyMoneyReward;
         userData.limit += weeklyLimitReward;
         userData.diamond += weeklydiamondtReward;
+        userData.rpg.exp += weeklyExp;
         userData.lastWeekly = currentTime;
 
         // 4. POST: Kirim kembali seluruh objek user yang sudah diubah ke API
@@ -62,7 +64,7 @@ module.exports = {
             .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
             .setDescription(`Kamu mendapatkan hadiah mingguan spesial!`)
             .addFields(
-                { name: 'Hadiah yang Diterima', value: `💰 **+${weeklyMoneyReward.toLocaleString('id-ID')}** Money\n🎟️ **+${weeklyLimitReward}** Limit\n💎 **+${weeklydiamondtReward}** diamond` },
+                { name: 'Hadiah yang Diterima', value: `💰 **+${weeklyMoneyReward.toLocaleString('id-ID')}** Money\n🎟️ **+${weeklyLimitReward}** Limit\n💎 **+${weeklydiamondtReward}** diamond\n **+${weeklyExp.toLocaleString('id-ID')}** Exp` },
                 { name: 'Total Milikmu Sekarang', value: `💰 **${userData.money.toLocaleString('id-ID')}** Money\n🎟️ **${userData.limit}** Limit\n💎 **+${userData.diamond}** diamond` }
             )
             .setFooter({ text: "Kembali lagi minggu depan untuk hadiah lainnya!" })

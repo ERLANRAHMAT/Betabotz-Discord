@@ -2,7 +2,7 @@ const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-fetch');
 const similarity = require('similarity');
 const config = require("../../config");
-const api = require('../../api_handler.js'); 
+const api = require('../../api_handler.js'); // Menggunakan API handler untuk ekonomi
 
 const gameState = new Map();
 const gameTimeout = 100000;
@@ -76,8 +76,8 @@ module.exports = {
           jawaban: question.jawaban,
           timeoutObj,
           answered: false,
-          playerId: authorId, 
-          playerUsername: authorUsername 
+          playerId: authorId, // Simpan ID pemain
+          playerUsername: authorUsername // Simpan username pemain
         });
 
     } catch (error) {
@@ -98,6 +98,7 @@ module.exports = {
     }
   },
 
+  // [DIPERBARUI] Message handler untuk memeriksa jawaban secara langsung
   async handleMessage(message, client) {
     const channelId = message.channel.id;
     if (!gameState.has(channelId) || message.author.bot) return;
@@ -105,7 +106,9 @@ module.exports = {
     const state = gameState.get(channelId);
     if (state.answered) return;
 
+    // Abaikan jika itu adalah perintah lain
     if (message.content.startsWith(config.prefix)) {
+        // Izinkan !toka, tapi tambahkan !suren di sini
         if (message.content.toLowerCase().startsWith(`${config.prefix}toka`)) return;
         if (message.content.toLowerCase() === `${config.prefix}suren`) {
             clearTimeout(state.timeoutObj);

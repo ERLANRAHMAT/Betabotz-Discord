@@ -11,6 +11,7 @@ module.exports = {
    */
   async execute(message, args, client) {
     try {
+        // 1. Ambil 5 pesan terakhir di channel
         const messages = await message.channel.messages.fetch({ limit: 5 });
         
         let targetMessage = null;

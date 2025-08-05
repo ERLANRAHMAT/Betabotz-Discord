@@ -28,13 +28,20 @@ module.exports = {
         throw new Error("Terjadi kesalahan internal pada skrip speedtest.");
       }
 
+      // ==================== PERBAIKAN FINAL DI SINI ====================
+      // Menggunakan Regex untuk mengekstrak URL secara paksa dan andal.
       let imageUrl = null;
+      
+      // Regex ini akan mencari baris yang dimulai dengan "Share results:", mengabaikan spasi,
+      // dan menangkap URL (http atau https) yang mengikutinya.
       const regex = /^Share results:\s*(https?:\/\/\S+)/im;
       const match = stdout.match(regex);
 
+      // Jika cocok, ambil grup tangkapan pertama (URL-nya).
       if (match && match[1]) {
           imageUrl = match[1];
       }
+      // ==================== AKHIR PERBAIKAN ====================
 
       const resultEmbed = new EmbedBuilder()
         .setColor(0x2ECC71)
@@ -45,6 +52,8 @@ module.exports = {
       
       if (imageUrl) {
         resultEmbed.setImage(imageUrl);
+        // Anda juga bisa menambahkan link di bawah teks jika mau
+        // resultEmbed.setDescription("...\n```" + `\n[Lihat Hasil Gambar](${imageUrl})`);
       }
       
       await processingMessage.edit({ content: "Tes Selesai!", embeds: [resultEmbed] });

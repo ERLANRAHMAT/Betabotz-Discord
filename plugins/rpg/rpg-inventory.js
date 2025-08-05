@@ -1,8 +1,7 @@
 const { EmbedBuilder } = require('discord.js');
 const api = require('../../api_handler.js');
 
-// --- Lookup Tables untuk Peralatan ---
-// Ini membuat kode lebih rapi daripada if/else yang panjang
+
 const EQUIPMENT_NAMES = {
     armor: ['Tidak Punya', 'Leather Armor', 'Iron Armor', 'Gold Armor', 'Diamond Armor', 'Emerald Armor', 'Crystal Armor', 'Obsidian Armor', 'Netherite Armor', 'Wither Armor', 'Dragon Armor', 'Hacker Armor', 'GOD Armor'],
     sword: ['Tidak Punya', 'Wooden Sword', 'Iron Sword', 'Gold Sword', 'Diamond Sword', 'Netherite Sword', 'Crystal Sword', 'Obsidian Sword', 'Netherite Sword', 'Wither Sword', 'Dragon Sword', 'Hacker Sword', 'GOD Sword'],
@@ -21,7 +20,7 @@ function getEquipmentName(type, level) {
 module.exports = {
   prefix: "inventory",
   category: "rpg",
-  aliases: ["inv", "stats"],
+  aliases: ["inv", "profile", "stats"],
   
   async execute(message, args, client) {
     const targetUser = message.mentions.users.first() || message.author;

@@ -5,9 +5,12 @@ const util = require('util');
 const config = require('../../config');
 
 module.exports = {
+  // ==================== PERUBAHAN DI SINI ====================
+  // Menambahkan properti seperti perintah biasa
   prefix: "eval",
   category: "tools",
   aliases: ["e", "evaluate"],
+  // ==================== AKHIR PERUBAHAN ====================
 
   /**
    * @param {import('discord.js').Message} message
@@ -15,10 +18,12 @@ module.exports = {
    * @param {import('discord.js').Client} client
    */
   async execute(message, args, client) {
-
+    // ==================== PENGECEKAN KEAMANAN PENTING ====================
+    // Karena ini sekarang perintah biasa, kita HARUS memeriksa ID owner di sini.
     if (message.author.id !== config.ownerId) {
         return message.reply("⛔ Perintah ini hanya untuk Owner Bot!");
     }
+    // =================================================================
 
     const code = args.join(' ');
 

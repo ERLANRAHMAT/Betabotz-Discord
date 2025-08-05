@@ -2,6 +2,9 @@ const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentTyp
 const api = require('../../api_handler.js');
 const { shopItems } = require('./rpg-shop.js');
 
+// ==================== PUSAT DATA RESEP CRAFTING ====================
+// Untuk mengubah resep atau menambah item, cukup edit di sini!
+// Kunci (misal: 'pickaxe') harus sama dengan nama properti di database Anda.
 const recipes = {
     axe: 
     { name: 'Axe', emoji: '🪓', materials: { kayu: 15, batu: 10, iron: 15, string: 10 }, result: { axe: 1 }, durability: { axedurability: 40 } },
@@ -63,6 +66,7 @@ const recipes = {
         durability: { katanadurability: 40 }
     }
 };
+// =================================================================
 
 module.exports = {
   prefix: "craft",

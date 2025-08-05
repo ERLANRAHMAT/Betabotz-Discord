@@ -3,7 +3,7 @@ const config = require('../../config');
 const api = require('../../api_handler.js'); // <-- Mengimpor handler API
 
 module.exports = {
-  prefix: "eco",
+  prefix: "eco", // Perintah utama
   category: "owner",
   aliases: ["addmoney", "addlimit", "setmoney", "setlimit"],
   
@@ -23,8 +23,12 @@ module.exports = {
     const processingMsg = await message.reply(`⏳ Memproses permintaan untuk **${target.username}**...`);
 
     try {
+        // --- ALUR KERJA BARU DENGAN API ---
+
+        // 1. GET: Ambil data user terbaru dari API
         const userData = await api.getUser(target.id, target.username);
 
+        // 2. MODIFY: Ubah data di memori sesuai perintah
         let replyMessage = "";
         switch (command) {
             case 'addmoney':
@@ -45,7 +49,10 @@ module.exports = {
                 break;
         }
 
+        // 3. POST: Kirim kembali seluruh objek data pengguna yang sudah diperbarui
         await api.updateUser(target.id, userData);
+
+        // 4. Kirim Pesan Sukses
         await processingMsg.edit(replyMessage);
 
     } catch (error) {

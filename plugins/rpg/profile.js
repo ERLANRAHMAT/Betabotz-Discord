@@ -13,6 +13,7 @@ function createProgressBar(currentValue, maxValue, size = 10) {
 }
 
 module.exports = {
+  // [BARU] Properti 'data' untuk mendefinisikan slash command
   data: new SlashCommandBuilder()
     .setName('profile')
     .setDescription('Menampilkan profil dan statistik RPG Anda atau pengguna lain.')

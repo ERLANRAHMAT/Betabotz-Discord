@@ -1,0 +1,157 @@
+{
+  "users": {
+    "686498842560168043": {
+      "username": "danaputra",
+      "money": 1000000,
+      "limit": 25,
+      "banned": {
+        "status": false,
+        "reason": null
+      },
+      "pasangan": null,
+      "proposalFrom": null,
+      "rpg": {
+        "level": 1,
+        "exp": 0,
+        "health": 100,
+        "mana": 50,
+        "inventory": {}
+      }
+    },
+    "399447194526154752": {
+      "username": "jp323",
+      "money": 1000000,
+      "limit": 25,
+      "banned": {
+        "status": false,
+        "reason": null
+      },
+      "pasangan": null,
+      "proposalFrom": null,
+      "rpg": {
+        "level": 1,
+        "exp": 0,
+        "health": 100,
+        "mana": 50,
+        "inventory": {}
+      }
+    },
+    "1362380838678822992": {
+      "username": "danaputtra2_15074",
+      "pasangan": null,
+      "money": 1000000,
+      "limit": 25,
+      "banned": {
+        "status": false,
+        "reason": null
+      },
+      "rpg": {
+        "level": 1,
+        "exp": 0,
+        "health": 100,
+        "mana": 50,
+        "inventory": {}
+      }
+    },
+    "1191170865694519347": {
+      "username": "erozestore.",
+      "money": 1000000,
+      "limit": 25,
+      "banned": {
+        "status": false,
+        "reason": null
+      },
+      "pasangan": null,
+      "proposalFrom": null,
+      "rpg": {
+        "level": 1,
+        "exp": 0,
+        "health": 100,
+        "mana": 50,
+        "inventory": {}
+      }
+    },
+    "1049940784343941141": {
+      "username": "kasan4375",
+      "money": 1000000,
+      "limit": 25,
+      "banned": {
+        "status": false,
+        "reason": null
+      },
+      "pasangan": null,
+      "proposalFrom": null,
+      "rpg": {
+        "level": 1,
+        "exp": 0,
+        "health": 100,
+        "mana": 50,
+        "inventory": {}
+      }
+    },
+    "1186096882657804341": {
+      "username": "betabotz",
+      "money": 1000000,
+      "limit": 25,
+      "banned": {
+        "status": false,
+        "reason": null
+      },
+      "pasangan": null,
+      "proposalFrom": null,
+      "rpg": {
+        "level": 1,
+        "exp": 0,
+        "health": 100,
+        "mana": 50,
+        "inventory": {}
+      }
+    },
+    "998824315170586674": {
+      "username": "yanstian",
+      "money": 1000000,
+      "limit": 25,
+      "banned": {
+        "status": false,
+        "reason": null
+      },
+      "pasangan": null,
+      "proposalFrom": null,
+      "rpg": {
+        "level": 1,
+        "exp": 0,
+        "health": 100,
+        "mana": 50,
+        "inventory": {}
+      }
+    },
+    "1386360780173217803": {
+      "username": "parimodeyaping_33428",
+      "money": 1000000,
+      "limit": 25,
+      "banned": {
+        "status": false,
+        "reason": null
+      },
+      "pasangan": null,
+      "proposalFrom": null,
+      "rpg": {
+        "level": 1,
+        "exp": 0,
+        "health": 100,
+        "mana": 50,
+        "inventory": {}
+      }
+    }
+  },
+  "guilds": {},
+  "global": {
+    "badwords": [
+      "anjing",
+      "babi",
+      "kontol",
+      "memek",
+      "asu"
+    ]
+  }
+}

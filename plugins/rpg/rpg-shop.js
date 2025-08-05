@@ -19,6 +19,7 @@ const shopItems = {
     uncommon: { name: 'Uncommon Crate', emoji: '🎁', buyPrice: 15000, sellPrice: 5000, description: 'Lootbox langka.' },
     mythic: { name: 'Mythic Crate', emoji: '✨', buyPrice: 50000, sellPrice: 15000, description: 'Lootbox mitos.' },
     legendary: { name: 'Legendary Crate', emoji: '👑', buyPrice: 10000000, sellPrice: 10000000, description: 'Lootbox legendaris.' },
+    coal: { name: 'Coal', emoji: '🪨', buyPrice: 1000, sellPrice: 500, description: 'Bahan bakar untuk memasak.' },
     umpan: { name: 'Umpan', emoji: '🪱', buyPrice: 1000, sellPrice: 300, description: 'Untuk memancing ikan.' },
 };
 // =========================================================

@@ -12,4 +12,5 @@ module.exports = [
   "tools",
   "downloader",
   "info",
+  "owner"
 ];

@@ -48,6 +48,7 @@ module.exports = {
             return message.reply(` kamu baru saja memancing, istirahat dulu ya.\nKembali lagi dalam **${formatTime(remainingTime)}**.`);
         }
 
+        // Kunci pengguna agar tidak bisa menjalankan perintah kerja lain
         activeMissions.add(authorId);
 
         const embed = new EmbedBuilder().setColor(0x3498DB).setTitle("🎣 Misi Memancing Dimulai");

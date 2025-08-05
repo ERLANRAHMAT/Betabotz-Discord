@@ -24,7 +24,7 @@ module.exports = {
         // 2. Siapkan data dengan nilai default 0 untuk keamanan
         const money = userData.money || 0;
         const limit = userData.limit || 0;
-        const diamond = userData.diamond || 0; 
+        const diamond = userData.diamond || 0; // Sesuaikan 'diamond' dengan nama properti di API Anda
 
         // 3. Buat embed dengan data yang diterima
         const embed = new EmbedBuilder()
@@ -42,6 +42,7 @@ module.exports = {
         await processingMsg.edit({ content: null, embeds: [embed] });
 
     } catch (error) {
+        // 5. Tangani jika API gagal
         console.error("[BALANCE CMD ERROR]", error);
         await processingMsg.edit(`❌ Terjadi kesalahan saat mengambil data dompet: ${error.message}`);
     }

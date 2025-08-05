@@ -46,25 +46,10 @@ module.exports = {
   apikey_dana: process.env.API_KEY_DANA, // Mengambil API key dari .env
 // kamu bisa dapat apikey ini dengan beli di https://api.danafxc.my.id/Price-api
 
-// ============== .env ==============
-//DISCORD_BOT_TOKEN=""
-//API_KEY_LANN=""
-//API_KEY_DANA=""
 
+  ownerId: '686498842560168043',
 
-
-  // =========== di bawah ini tidak usah ==============
-  // reminderChannelIds: [
-  //       '1391419433741979819',
-  //       '1294278656818024545',
-  //       // Add more channel IDs as needed
-  //   ],
-   ownerId: '686498842560168043',
-  // ilabChannelId: 'wajib di isi',
-  // // Menu & Feature Settings
-
-
-
+  // Menu & Feature Settings
   menuPublic: false, // Apakah menu public aktif?
 
   // Channel IDs

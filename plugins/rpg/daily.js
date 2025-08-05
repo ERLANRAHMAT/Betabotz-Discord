@@ -1,9 +1,11 @@
 const { EmbedBuilder } = require('discord.js');
-const api = require('../../api_handler');
+const api = require('../../api_handler.js');
 
+// --- Konfigurasi Hadiah ---
 const dailyReward = 5000;
+const dailyExp = 100; 
 const cooldown = 86400000; 
-
+// ---
 
 /**
  * Mengubah milidetik menjadi format waktu yang mudah dibaca.
@@ -34,24 +36,30 @@ module.exports = {
 
     try {
         const userData = await api.getUser(userId, username);
-
         const lastClaim = userData.lastDaily || 0;
         const currentTime = Date.now();
+
         if (currentTime - lastClaim < cooldown) {
-        const remainingTime = cooldown - (currentTime - lastClaim);
-        return message.reply(`🎁 Anda sudah mengambil hadiah harian.\nSilakan kembali lagi dalam **${msToTime(remainingTime)}**.`);
-    }
+            const remainingTime = cooldown - (currentTime - lastClaim);
+            return message.reply(`🎁 Anda sudah mengambil hadiah harian.\nSilakan kembali lagi dalam **${msToTime(remainingTime)}**.`);
+        }
 
         userData.money += dailyReward;
+        userData.rpg.exp += dailyExp; 
         userData.lastDaily = currentTime;
 
         await api.updateUser(userId, userData);
 
         const embed = new EmbedBuilder()
-            .setColor(0x2ECC71).setTitle("🎉 Hadiah Harian Berhasil Diklaim!")
-            .setDescription(`Kamu mendapatkan **${dailyReward.toLocaleString('id-ID')}** Money!`)
-            .addFields({ name: 'Total Uangmu Sekarang', value: `💰 ${userData.money.toLocaleString('id-ID')}` })
-            .setFooter({ text: "Kembali lagi besok!" });
+            .setColor(0x2ECC71)
+            .setTitle("🎉 Hadiah Harian Berhasil Diklaim!")
+            .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
+            .addFields(
+                { name: 'Hadiah Diterima', value: `💰 **+${dailyReward.toLocaleString('id-ID')}** Money\n✨ **+${dailyExp.toLocaleString('id-ID')}** Exp` },
+                { name: 'Total Milikmu Sekarang', value: `💰 ${userData.money.toLocaleString('id-ID')} Money` }
+            )
+            .setFooter({ text: "Kembali lagi besok!" })
+            .setTimestamp();
 
         await message.reply({ embeds: [embed] });
 

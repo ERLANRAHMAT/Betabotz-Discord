@@ -11,11 +11,15 @@ module.exports = {
    * @param {string[]} args
    */
   async execute(message, args, client) {
+    // Tentukan target, jika tidak ada mention, targetnya adalah diri sendiri
     const targetUser = message.mentions.users.first() || message.author;
     const processingMsg = await message.reply(`🌊 Memeriksa isi kolam milik **${targetUser.username}**...`);
 
     try {
+        // GET: Ambil data user terbaru dari API
         const userData = await api.getUser(targetUser.id, targetUser.username);
+
+        // Siapkan daftar ikan dari data pengguna
         const fishList = `
         🐋 **Paus**: ${userData.paus || 0}
         🦀 **Kepiting**: ${userData.kepiting || 0}

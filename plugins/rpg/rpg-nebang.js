@@ -39,6 +39,7 @@ module.exports = {
         if ((userData.axedurability || 0) <= 0) {
             return message.reply("❗ Kapakmu sudah rusak dan tidak bisa digunakan lagi. Buat yang baru di `!craft`.");
         }
+        // ==================== AKHIR PERBAIKAN ====================
 
         const lastNebang = userData.lastnebang || 0;
         const currentTime = Date.now();

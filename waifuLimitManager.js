@@ -3,7 +3,7 @@ const path = require('path');
 
 const limitFilePath = path.join(__dirname, 'waifu_limits.json');
 let limits = {};
-const MAX_USES = 100; // Nilai ini yang akan diekspor
+const MAX_USES = 10; // Nilai ini yang akan diekspor
 
 function getTodayDateString() {
     const now = new Date();

@@ -3,8 +3,6 @@ const path = require('path');
 
 const tempDir = path.join(__dirname, 'temp');
 const CACHE_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000; // 30 hari
-
-// Pastikan direktori temp ada
 if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir, { recursive: true });
 }

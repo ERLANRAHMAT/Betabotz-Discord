@@ -1,45 +1,45 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, SlashCommandBuilder } = require("discord.js");
 const fetch = require("node-fetch");
 const config = require("../../config.js");
 
 module.exports = {
-  prefix: "bard",
+  data: new SlashCommandBuilder()
+    .setName("bard")
+    .setDescription("Bertanya kepada Bard AI.")
+    .addStringOption(option =>
+      option.setName('pertanyaan')
+            .setDescription('Tulis pertanyaan yang ingin kamu ajukan')
+            .setRequired(true)), 
+  
   category: "ai",
-  aliases: ["bardai"],
-  async execute(message, args, client) {
-    if (!args.length) {
-      return message.reply(
-        `Masukkan pertanyaan!\n\n*Contoh:* \`${
-          config.prefix || "!"
-        }bard Siapa presiden Indonesia?\``
-      );
-    }
-    const waitMsg = await sendApiProcessing(message, "Bard AI");
+  
+  /**
+   * @param {import('discord.js').Interaction} interaction
+   */
+  async execute(interaction) {
+    await interaction.deferReply();
+    const question = interaction.options.getString('pertanyaan');
+
     try {
-      const q = encodeURIComponent(args.join(" "));
+      const q = encodeURIComponent(question);
       const apiUrl = `https://api.betabotz.eu.org/api/search/bard-ai?apikey=${config.apikey_lann}&text=${q}`;
+      
       const res = await fetch(apiUrl);
       const json = await res.json();
+      
       if (json && json.message) {
-        await waitMsg.edit({
-          embeds: [
-            new EmbedBuilder()
-              .setColor("#67DFF4")
-              .setTitle("Bard AI")
-              .setDescription(json.message)
-              .setFooter({ text: "BetaBotz Bard AI" }),
-          ],
-        });
+        const embed = new EmbedBuilder()
+          .setColor("#67DFF4")
+          .setAuthor({ name: "Bard AI", iconURL: "https://i.imgur.com/Kxysn2y.png" }) // Menambahkan ikon Bard
+          .setDescription(json.message)
+          .setFooter({ text: `Diminta oleh: ${interaction.user.username}` });
+                await interaction.editReply({ embeds: [embed] });
       } else {
-        await sendApiError(
-          message,
-          "Gagal mendapatkan jawaban dari Bard.",
-          "Bard AI"
-        );
+        await interaction.editReply("❌ Maaf, gagal mendapatkan jawaban dari Bard saat ini.");
       }
     } catch (err) {
-      console.error("[BARD ERROR]", err);
-      await sendApiError(message, err, "Bard AI");
+      console.error("[BARD CMD ERROR]", err);
+      await interaction.editReply(`❌ Terjadi kesalahan saat menghubungi Bard AI: ${err.message}`);
     }
   },
 };

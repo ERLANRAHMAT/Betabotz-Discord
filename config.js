@@ -63,3 +63,10 @@ module.exports = {
     queue: "wajib di isi", // ID channel queue
   },
 };
+
+//isi dari .env
+
+
+//#DISCORD_BOT_TOKEN=""
+//API_KEY_LANN=""
+//API_KEY_DANA=""

@@ -25,7 +25,7 @@ async function fetchQuestion() {
 
 module.exports = {
   prefix: "asahotak",
-  category: "games",
+  category: "game",
   aliases: ["ao"],
     
   async execute(message, args, client) {

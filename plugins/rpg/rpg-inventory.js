@@ -20,7 +20,7 @@ function getEquipmentName(type, level) {
 module.exports = {
   prefix: "inventory",
   category: "rpg",
-  aliases: ["inv", "profile", "stats"],
+  aliases: ["inv", "stats"],
   
   async execute(message, args, client) {
     const targetUser = message.mentions.users.first() || message.author;

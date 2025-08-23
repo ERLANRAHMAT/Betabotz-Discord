@@ -8,6 +8,7 @@ if (!fs.existsSync(tempDir)) {
 }
 
 function getCacheKey(identifier) {
+    // Membuat nama file yang aman dari URL atau ID
     return require('crypto').createHash('md5').update(identifier).digest('hex') + '.opus';
 }
 

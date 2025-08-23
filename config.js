@@ -7,7 +7,7 @@ module.exports = {
 
   //API DATABASE RPG
   api: {
-        baseUrl: "https://api.danafxc.my.id/api",   // kamu bisa dapat apikey ini dengan beli di https://api.danafxc.my.id/Price-api
+        baseUrl: "https://api.danafxc.my.id/api/proxy",   // kamu bisa dapat apikey ini dengan beli di https://api.danafxc.my.id/Price-api
         apiKey: process.env.API_KEY_DANA, 
     },
 

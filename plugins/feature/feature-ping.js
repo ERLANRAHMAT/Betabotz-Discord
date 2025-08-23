@@ -1,24 +1,19 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = {
-  // [BARU] Properti 'data' untuk mendefinisikan slash command
-  data: new SlashCommandBuilder()
-    .setName('ping')
-    .setDescription('Memeriksa latensi bot dan API Discord.'),
-  
-  category: 'info', // Kategori tetap ada untuk loader Anda
+  prefix: 'ping',
+  category: 'info',
+  aliases: ['pong'],
   
   /**
-   * @param {import('discord.js').Interaction} interaction
+   * @param {import('discord.js').Message} message
+   * @param {string[]} args
    * @param {import('discord.js').Client} client
    */
-  async execute(interaction, client) {
-    // Kirim pesan awal dan tunggu balasannya untuk diukur
-    const sent = await interaction.reply({ content: '🏓 Mengukur ping...', fetchReply: true });
+  async execute(message, args, client) {
+    const sent = await message.reply({ content: '🏓 Mengukur ping...' });
 
-    // Hitung latensi bolak-balik (Roundtrip)
-    const roundtripLatency = sent.createdTimestamp - interaction.createdTimestamp;
-    // Ambil latensi WebSocket (koneksi inti bot ke Discord)
+    const roundtripLatency = sent.createdTimestamp - message.createdTimestamp;
     const websocketLatency = client.ws.ping;
 
     const pingEmbed = new EmbedBuilder()
@@ -30,12 +25,11 @@ module.exports = {
         { name: 'Latensi API (WebSocket)', value: `\`${websocketLatency}ms\``, inline: true }
       )
       .setFooter({
-        text: `Diminta oleh ${interaction.user.username}`,
-        iconURL: interaction.user.displayAvatarURL()
+        text: `Diminta oleh ${message.author.username}`,
+        iconURL: message.author.displayAvatarURL()
       })
       .setTimestamp();
 
-    // Edit pesan awal dengan hasil akhir
-    await interaction.editReply({ content: null, embeds: [pingEmbed] });
+    await sent.edit({ content: null, embeds: [pingEmbed] });
   },
 };

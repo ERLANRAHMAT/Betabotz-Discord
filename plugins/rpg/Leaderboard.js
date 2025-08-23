@@ -9,7 +9,7 @@ const config = require('../../config');
  */
 async function fetchLeaderboard(type) {
     try {
-        const url = `${config.api.baseUrl}/rpg/leaderboard?type=${type}&apikey=${config.api.apiKey}`;
+        const url = `${config.api.baseUrl}/features/rpg/leaderboard?type=${type}&apikey=${config.api.apiKey}`;
         const response = await axios.get(url);
         if (response.data && response.data.status) {
             return response.data.data; // Mengembalikan array pengguna yang sudah diurutkan

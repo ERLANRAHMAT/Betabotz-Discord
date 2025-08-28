@@ -3,12 +3,12 @@ const path = require('path');
 
 const tempDir = path.join(__dirname, 'temp');
 const CACHE_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000; // 30 hari
+
 if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir, { recursive: true });
 }
 
 function getCacheKey(identifier) {
-    // Membuat nama file yang aman dari URL atau ID
     return require('crypto').createHash('md5').update(identifier).digest('hex') + '.opus';
 }
 

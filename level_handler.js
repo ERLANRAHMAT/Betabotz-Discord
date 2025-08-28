@@ -1,5 +1,23 @@
 const api = require('./api_handler.js');
 
+// [BARU] Sistem cache khusus untuk level handler
+const levelCache = new Map();
+const CACHE_DURATION = 60 * 1000; // Cache data selama 1 menit
+
+/**
+ * [BARU] Fungsi untuk mengambil data user dari cache atau API.
+ */
+async function getCachedUser(userId, username) {
+    const now = Date.now();
+    const cachedEntry = levelCache.get(userId);
+    if (cachedEntry && (now - cachedEntry.timestamp < CACHE_DURATION)) {
+        return cachedEntry.data;
+    }
+    const userData = await api.getUser(userId, username);
+    levelCache.set(userId, { data: userData, timestamp: now });
+    return userData;
+}
+// ---
 
 const expForNextLevel = level => 5 * (level ** 2) + 50 * level + 100;
 
@@ -72,21 +90,16 @@ function getRoleForLevel(level) {
         if (level >= role.level) {
             currentRole = role.name;
         } else {
-            break; // Karena daftar sudah urut, kita bisa berhenti
+            break;
         }
     }
     return currentRole;
 }
-/**
- * Mencoba menaikkan level pengguna jika EXP mencukupi.
- * Bisa menangani kenaikan beberapa level sekaligus.
- * @param {string} userId - ID pengguna.
- * @param {string} username - Username pengguna.
- * @returns {Promise<Object>}
- */
+
 async function attemptLevelUp(userId, username) {
     try {
-        const userData = await api.getUser(userId, username);
+        // [DIPERBARUI] Menggunakan fungsi cache
+        const userData = await getCachedUser(userId, username);
         const initialLevel = userData.rpg.level;
         let currentLevel = userData.rpg.level;
         let currentExp = userData.rpg.exp;
@@ -106,12 +119,13 @@ async function attemptLevelUp(userId, username) {
             userData.rpg.level = currentLevel;
             userData.rpg.exp = currentExp;
             
-            // Perbarui peran di database jika berubah
             if (newRole !== oldRole) {
                 userData.role = newRole;
             }
 
             await api.updateUser(userId, userData);
+            // [BARU] Hapus data dari cache setelah update agar data baru langsung terbaca
+            levelCache.delete(userId);
             
             return { 
                 leveledUp: true, 

@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 
 module.exports = {
   prefix: "say",
@@ -10,6 +10,11 @@ module.exports = {
    * @param {string[]} args
    */
   async execute(message, args, client) {
+    // Validasi izin
+    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
+      return message.reply("Anda tidak memiliki izin untuk menggunakan perintah ini.");
+    }
+
     const textToSay = args.join(" ");
 
     if (!textToSay) {
@@ -21,12 +26,23 @@ module.exports = {
         return message.reply({ embeds: [helpEmbed] });
     }
 
+    // Opsi untuk mengirim pesan sebagai embed
+    const isEmbed = textToSay.startsWith("--embed");
+    const content = isEmbed ? textToSay.replace("--embed", "").trim() : textToSay;
+
     if (message.deletable) {
         await message.delete().catch(err => {
             console.error("Gagal menghapus pesan:", err);
         });
     }
 
-    await message.channel.send(textToSay);
+    if (isEmbed) {
+      const embed = new EmbedBuilder()
+        .setColor(0x3498DB)
+        .setDescription(content);
+      await message.channel.send({ embeds: [embed] });
+    } else {
+      await message.channel.send(content);
+    }
   },
 };

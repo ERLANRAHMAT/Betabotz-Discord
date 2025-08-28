@@ -1,6 +1,7 @@
 const { EmbedBuilder } = require('discord.js');
 
 module.exports = {
+  // [DIUBAH] Kembali ke struktur prefix command
   prefix: 'ping',
   category: 'info',
   aliases: ['pong'],
@@ -11,9 +12,9 @@ module.exports = {
    * @param {import('discord.js').Client} client
    */
   async execute(message, args, client) {
-    const sent = await message.reply({ content: '🏓 Mengukur ping...' });
-
-    const roundtripLatency = sent.createdTimestamp - message.createdTimestamp;
+    // Hitung latensi bolak-balik (Roundtrip) langsung
+    const roundtripLatency = Date.now() - message.createdTimestamp;
+    // Ambil latensi WebSocket (koneksi inti bot ke Discord)
     const websocketLatency = client.ws.ping;
 
     const pingEmbed = new EmbedBuilder()
@@ -30,6 +31,7 @@ module.exports = {
       })
       .setTimestamp();
 
-    await sent.edit({ content: null, embeds: [pingEmbed] });
+    // Kirim pesan langsung dengan hasil pengukuran
+    await message.reply({ embeds: [pingEmbed] });
   },
 };

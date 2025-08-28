@@ -5,7 +5,7 @@ const config = require("../../config");
 const CUACA_HOURS = [7, 12, 18];
 const WINDOW_MINUTES = 2;
 
-let cuacaInfo = {};
+let cuacaCache = {}; // Cache untuk menyimpan data cuaca sementara
 let repliedChannels = {};
 let lastLocation = {};
 
@@ -16,11 +16,21 @@ const majorCities = [
 
 async function fetchCuaca(location) {
     if (!location) return null;
+
+    // Cek cache terlebih dahulu
+    if (cuacaCache[location] && (Date.now() - cuacaCache[location].timestamp < 10 * 60 * 1000)) {
+        return cuacaCache[location].data;
+    }
+
     const url = `https://api.betabotz.eu.org/api/tools/cuaca?query=${encodeURIComponent(location)}&apikey=${config.apikey_lann}`;
     try {
         const res = await fetch(url);
         const data = await res.json();
-        return data?.result;
+        if (data?.result) {
+            cuacaCache[location] = { data: data.result, timestamp: Date.now() }; // Simpan ke cache
+            return data.result;
+        }
+        return null;
     } catch (e) {
         console.error(`[Cuaca API] Gagal fetch:`, e);
         return null;
@@ -65,7 +75,7 @@ module.exports = {
     if (!info) return interaction.editReply("❌ Tidak bisa mengambil data cuaca untuk lokasi tersebut.");
 
     lastLocation[interaction.channel.id] = location;
-    cuacaInfo[interaction.channel.id] = { date: new Date().toLocaleDateString("id-ID"), info };
+    cuacaCache[interaction.channel.id] = { date: new Date().toLocaleDateString("id-ID"), info };
     repliedChannels[interaction.channel.id] = {}; // Reset pengingat saat lokasi baru diatur
 
     const embed = new EmbedBuilder()
@@ -88,10 +98,10 @@ module.exports = {
     if (!location) return;
 
     const todayStr = new Date().toLocaleDateString("id-ID");
-    if (!cuacaInfo[channelId] || cuacaInfo[channelId].date !== todayStr) {
+    if (!cuacaCache[channelId] || cuacaCache[channelId].date !== todayStr) {
         const info = await fetchCuaca(location);
         if (!info) return;
-        cuacaInfo[channelId] = { date: todayStr, info };
+        cuacaCache[channelId] = { date: todayStr, info };
         repliedChannels[channelId] = {};
     }
 
@@ -100,7 +110,7 @@ module.exports = {
     for (const hour of CUACA_HOURS) {
       if (repliedChannels[channelId][hour]) continue;
       if (isWithinHourWindow(hour, now)) {
-        const info = cuacaInfo[channelId].info;
+        const info = cuacaCache[channelId].info;
         const embed = new EmbedBuilder().setColor("#67DFF4").setTitle(`🌤️ PENGINGAT CUACA (${info.location})`)
             .setDescription(`Cuaca saat ini: **${info.weather}** dengan suhu **${info.currentTemp}**.`);
         await message.channel.send({ embeds: [embed] });

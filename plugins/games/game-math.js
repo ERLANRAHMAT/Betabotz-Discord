@@ -5,7 +5,7 @@ const api = require('../../api_handler.js');
 
 const gameSessions = new Map();
 const initialAttempts = 3;
-const apiUrl = `https://api.danafxc.my.id/api/math?apikey=${config.apikey_dana}`;
+const apiUrl = `https://api.danafxc.my.id/api/proxy/games/math?apikey=${config.apikey_dana}`;
 
 // --- Konfigurasi Hadiah & Denda ---
 const rewardAmounts = {

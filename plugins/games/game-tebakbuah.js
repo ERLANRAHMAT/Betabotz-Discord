@@ -5,27 +5,28 @@ const config = require("../../config");
 const api = require('../../api_handler.js');
 
 const gameSessions = new Map();
-const gameTimeout = 120000;
-const rewardPoint = 12000;
-const penaltyAmount = 600;
+const gameTimeout = 120000; 
+const rewardPoint = 10000;
+const penaltyAmount = 500;
 const similarityThreshold = 0.7;
+
 
 async function fetchQuestion() {
     try {
-        const response = await fetch(`https://api.betabotz.eu.org/api/game/tebakepep?apikey=${config.apikey_lann}`);
+        const response = await fetch(`https://api.danafxc.my.id/api/proxy/games?q=tebakbuah&apikey=${config.api.apiKey}`);
         if (!response.ok) throw new Error(`API returned status ${response.status}`);
         const data = await response.json();
-        return data[Math.floor(Math.random() * data.length)];
+        return data;
     } catch (error) {
-        console.error("[TEBAK EPEP] Gagal mengambil data dari API:", error);
+        console.error("[TEBAK BUAH] Gagal mengambil data dari API:", error);
         return null;
     }
 }
 
 module.exports = {
-  prefix: "tebakepep",
+  prefix: "tebakbuah",
   category: "game",
-  aliases: ["epep", "tebakff"],
+  aliases: ["buah"],
 
   async execute(message, args, client) {
     const channelId = message.channel.id;
@@ -39,7 +40,7 @@ module.exports = {
         }
 
         if (gameSessions.has(channelId)) {
-            return message.reply("❗ Masih ada sesi Tebak Karakter FF yang sedang berlangsung.");
+            return message.reply("❗ Masih ada sesi Tebak Buah yang sedang berlangsung di channel ini.");
         }
 
         const question = await fetchQuestion();
@@ -48,15 +49,15 @@ module.exports = {
         }
 
         const gameEmbed = new EmbedBuilder()
-          .setColor(0xFFA500) 
-          .setTitle("🔫 Siapakah Karakter Free Fire Ini?")
-          .setDescription(`**Petunjuk Skill:**\n> *${question.deskripsi}*`)
+          .setColor(0x55DD33) 
+          .setTitle("🍎 Tebak Nama Buah!")
           .setImage(question.img)
           .addFields(
+              { name: "Deskripsi", value: `> *${question.deskripsi}*` },
               { name: "Waktu", value: `⏳ ${gameTimeout / 1000} detik`, inline: true },
               { name: "Hadiah", value: `💰 ${rewardPoint.toLocaleString('id-ID')}`, inline: true }
           )
-          .setFooter({ text: "Ketik nama karakter, !epephelp untuk bantuan, atau !suren untuk menyerah." });
+          .setFooter({ text: "Ketik jawabanmu, !buahhelp untuk bantuan, atau !suren untuk menyerah." });
 
         await message.channel.send({ embeds: [gameEmbed] });
 
@@ -75,8 +76,8 @@ module.exports = {
             const winnerId = msg.author.id;
             const winnerUsername = msg.author.username;
 
-            if (userGuess === "!epephelp") {
-                const hint = session.answer.replace(/[bcdfghjklmnpqrstvwxyz]/gi, '_');
+            if (userGuess === "!buahhelp") {
+                const hint = session.answer.replace(/[aiueo]/gi, '_');
                 return msg.reply(`**Bantuan:** \`${hint}\``);
             }
             if (userGuess === "!suren") {
@@ -88,7 +89,7 @@ module.exports = {
                 winnerData.money += rewardPoint;
                 await api.updateUser(winnerId, winnerData);
                 
-                await msg.reply(`✅ **BOOYAH!** Jawabannya adalah **${session.answer}**.\nSelamat <@${winnerId}>, kamu mendapatkan +**${rewardPoint.toLocaleString('id-ID')}** Money!`);
+                await msg.reply(`✅ **Benar!** Jawabannya adalah **${session.answer}**.\nSelamat <@${winnerId}>, kamu mendapatkan +**${rewardPoint.toLocaleString('id-ID')}** Money!`);
                 collector.stop('correct');
             } else {
                 msg.react('❌').catch(() => {});
@@ -105,13 +106,13 @@ module.exports = {
                 await api.updateUser(authorId, authorDataOnEnd);
                 
                 const reasonText = reason === 'time' ? '⏰ **Waktu habis!**' : 'Kamu menyerah...';
-                message.channel.send(`${reasonText}\nJawabannya adalah **${session.answer}**.\nKamu kehilangan **${penaltyAmount.toLocaleString('id-ID')}** Money.`);
+                message.channel.send(`${reasonText}\nJawaban yang benar adalah **${session.answer}**.\nKamu kehilangan **${penaltyAmount.toLocaleString('id-ID')}** Money.`);
             }
             
             gameSessions.delete(channelId);
         });
     } catch (error) {
-        console.error("[TEBAKEPEP CMD ERROR]", error);
+        console.error("[TEBAKBUAH CMD ERROR]", error);
         message.reply(`❌ Terjadi kesalahan: ${error.message}`);
     }
   }

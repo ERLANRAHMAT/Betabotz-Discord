@@ -1,60 +1,81 @@
-const { AttachmentBuilder, EmbedBuilder } = require("discord.js");
-const uploadFile = require("../../lib/uploadFile");
-const uploadImage = require("../../lib/uploadImage");
+const { EmbedBuilder, AttachmentBuilder } = require('discord.js');
+const axios = require('axios');
+const FormData = require('form-data');
+const config = require('../../config.js');
 
 module.exports = {
   prefix: "tourl",
   category: "tools",
   aliases: ["upload"],
+  
+  /**
+   * @param {import('discord.js').Message} message
+   * @param {string[]} args
+   * @param {import('discord.js').Client} client
+   */
   async execute(message, args, client) {
-    const attachment = message.attachments.first();
-    if (!attachment) {
-      return message.reply(
-        "❌ Tidak ada media yang ditemukan. Kirim gambar/video/file dengan caption `!tourl` atau reply file dengan command ini."
-      );
+    let attachment;
+    let repliedMsg = null;
+    if (message.attachments.size > 0) {
+        attachment = message.attachments.first();
+    } else if (message.reference && message.reference.messageId) {
+        try {
+            repliedMsg = await message.channel.messages.fetch(message.reference.messageId);
+            attachment = repliedMsg.attachments.first();
+        } catch (error) {
+            return message.reply("Gagal mengambil gambar dari pesan yang di-reply.");
+        }
     }
-    const url = attachment.url;
-    const name = attachment.name || "file";
-    const mime = attachment.contentType || "";
+
+    // Jika tidak ada gambar sama sekali
+    if (!attachment || !attachment.contentType?.startsWith('image/')) {
+        return message.reply("Harap kirim gambar dengan caption `!tourl` atau reply sebuah gambar.");
+    }
+
+    const processingMsg = await message.reply("📤 Mengunggah gambar, mohon tunggu...");
+
     try {
-      // Gunakan node-fetch v2: res.buffer(), node-fetch v3: res.arrayBuffer()
-      let fetchBuffer;
-      const res = await fetch(url);
-      if (typeof res.buffer === "function") {
-        fetchBuffer = await res.buffer();
-      } else {
-        fetchBuffer = Buffer.from(await res.arrayBuffer());
-      }
-      const buffer = fetchBuffer;
-      const isTele = /image\/(png|jpe?g|gif)|video\/mp4/.test(mime);
-      const fileSizeLimit = 5 * 1024 * 1024;
-      if (buffer.length > fileSizeLimit) {
-        return message.reply("Ukuran media tidak boleh melebihi 5MB");
-      }
-      let link;
-      if (isTele) {
-        link = await uploadImage(
-          buffer,
-          "false",
-          client.config?.apikey_lann || client.config?.apikey || ""
-        );
-      } else {
-        link = await uploadFile(buffer);
-      }
-      const embed = new EmbedBuilder()
-        .setColor("#67DFF4")
-        .setTitle("Hasil Unggah")
-        .setDescription(
-          `**URL:**\n${link}\n\n**Ukuran:** ${buffer.length} Byte(s)\n${
-            isTele
-              ? "(Tidak Ada Tanggal Kedaluwarsa)"
-              : "(Kedaluwarsa dalam 24 jam)"
-          }`
-        )
-        .setFooter({ text: "BetaBotz Uploader" });
-      await message.reply({ embeds: [embed] });
-    } catch (e) {
-      await message.reply("❌ Gagal mengunggah file: " + e.message);
+        // Cek batas ukuran file 5MB
+        const fileSizeLimit = 5 * 1024 * 1024; 
+        if (attachment.size > fileSizeLimit) {
+            return processingMsg.edit(`❌ Ukuran gambar melebihi batas 5MB.`);
+        }
+        const imageUrl = attachment.url;
+        const imageBuffer = await axios.get(imageUrl, { responseType: 'arraybuffer' }).then(res => res.data);
+        const form = new FormData();
+        form.append('image', imageBuffer, {
+            filename: attachment.name,
+            contentType: attachment.contentType
+        });
+        
+        const apiUrl = `${config.api.baseUrl}/features/upload?apikey=${config.api.apiKey}`;
+        const response = await axios.post(apiUrl, form, {
+            headers: form.getHeaders(),
+        });
+
+        const result = response.data;
+
+        if (!result || !result.url) {
+            throw new Error("API tidak mengembalikan URL yang valid.");
+        }
+      
+        const link = result.url;
+        const embed = new EmbedBuilder()
+            .setColor(0x2ECC71)
+            .setTitle("✅ Gambar Berhasil Diunggah")
+            .setDescription("Gambar Anda telah berhasil diunggah dan sekarang memiliki link publik.")
+            .addFields({ name: 'URL Publik', value: `${link}` })
+            .setImage(link) 
+            .setFooter({ text: `Diunggah oleh ${message.author.username}` })
+            .setTimestamp();
+
+        await processingMsg.edit({ content: null, embeds: [embed] });
+
+    } catch (error) {
+        console.error(`[TOURL ERROR]:`, error.response ? error.response.data : error.message);
+        const errorMessage = error.response?.data?.message || error.message || "Terjadi kesalahan tidak diketahui.";
+        await processingMsg.edit(`Gagal mengunggah gambar. Penyebab: \`${errorMessage}\``);
     }
   },
 };
+

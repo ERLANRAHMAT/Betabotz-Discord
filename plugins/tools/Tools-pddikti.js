@@ -22,15 +22,16 @@ module.exports = {
     const processingMsg = await message.reply(`🔍 Mencari data untuk **${query}** di database PDDIKTI...`);
 
     try {
-        const apiUrl = `${config.api.baseUrl}/features/pddikti-browser/${encodeURIComponent(query)}?apikey=${config.api.apiKey}`;
+        const apiUrl = `${config.api.baseUrl}/features/pddikti?query=${encodeURIComponent(query)}&apikey=${config.api.apiKey}`;
 
         const response = await axios.get(apiUrl);
         const result = response.data;
 
-        if (!result.status || !result.data || result.data.length === 0) {
-            throw new Error(result.message || `Data untuk "${query}" tidak ditemukan.`);
+       if (!result.status || !result.data || result.data.length === 0) {
+            const customError = new Error("Data tidak ditemukan");
+            customError.response = { status: 404 }; 
+            throw customError;
         }
-
         const mahasiswaList = result.data;
         const slicedList = mahasiswaList.slice(0, 5);
 
@@ -57,10 +58,12 @@ module.exports = {
 
         await processingMsg.edit({ content: null, embeds: [embed] });
 
-    } catch (error) {
+   } catch (error) {
+        if (error.response && error.response.status === 404) {
+            return await processingMsg.edit(`❌ Data untuk **"${query}"** tidak ditemukan! Mungkin dia tidak berkuliah atau salah ketik.`);
+        }
         console.error('Error pada fitur pddikti:', error.response ? error.response.data : error.message);
-        const errorMessage = error.response?.data?.message || error.message || "Terjadi kesalahan tidak diketahui.";
-        await processingMsg.edit(`Gagal mencari data. Penyebab: \`${errorMessage}\``);
+        return await processingMsg.edit(`❌ Terjadi kesalahan sistem saat mengambil data.`);
     }
   },
 };

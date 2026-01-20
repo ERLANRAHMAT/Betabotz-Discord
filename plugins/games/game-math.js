@@ -3,9 +3,11 @@ const fetch = require('node-fetch');
 const config = require("../../config");
 const api = require('../../api_handler.js');
 
+const API_KEY = config.api.apiKey;
+
 const gameSessions = new Map();
 const initialAttempts = 3;
-const apiUrl = `https://api.danafxc.my.id/api/proxy/games/math?apikey=${config.apikey_dana}`;
+const apiUrl = `https://api.danafxc.my.id/api/proxy/games?q=math&apikey=${API_KEY}`;
 
 // --- Konfigurasi Hadiah & Denda ---
 const rewardAmounts = {

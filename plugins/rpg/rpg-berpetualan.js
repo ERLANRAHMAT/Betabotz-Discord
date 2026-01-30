@@ -10,12 +10,12 @@ function createAdventures() {
         area: `Petualangan di ${areaName}`,
         keyword: areaName.toLowerCase().replace(/ /g, "_"),
         reward: {
-            exp: 100 + (i * 50),
-            money: Math.floor(Math.random() * 20000) + 5000,
-            potion: Math.random() > 0.5 ? 1 : 0,
-            diamond: Math.random() > 0.8 ? 1 : 0, // Peluang lebih kecil
-            emas: Math.random() > 0.6 ? Math.floor(Math.random() * 3) + 1 : 0,
-            limit: Math.random() > 0.9 ? 1 : 0, // Peluang kecil dapat limit
+            exp: 30 + (i * 10),
+            money: Math.floor(Math.random() * 5000) + 1000,
+            potion: Math.random() > 0.7 ? 1 : 0,
+            diamond: Math.random() > 0.995 ? 1 : 0, // Sangat langka
+            emas: Math.random() > 0.8 ? 1 : 0,
+            limit: Math.random() > 0.98 ? 1 : 0,
         }
     }));
 }

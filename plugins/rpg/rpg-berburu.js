@@ -11,11 +11,11 @@ function clockString(ms) { /* ... (Fungsi sama seperti sebelumnya) ... */ }
 
 // Daftar hewan yang bisa didapat dari berburu
 const huntLoot = {
-    ayam: { max: 12, emoji: '🐓' },
-    babi: { max: 8, emoji: '🐖' },
-    sapi: { max: 5, emoji: '🐄' },
-    kambing: { max: 10, emoji: '🐐' },
-    kerbau: { max: 5, emoji: '🐃' },
+    ayam: { max: 3, emoji: '🐓' },
+    babi: { max: 2, emoji: '🐖' },
+    sapi: { max: 1, emoji: '🐄' },
+    kambing: { max: 2, emoji: '🐐' },
+    kerbau: { max: 1, emoji: '🐃' },
 };
 
 module.exports = {

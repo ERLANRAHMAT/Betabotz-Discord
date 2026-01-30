@@ -68,7 +68,7 @@ module.exports = {
             bawal: Math.floor(Math.random() * 1),
             ikan: Math.floor(Math.random() * 2),
             udang: Math.floor(Math.random() * 1),
-            paus: Math.random() < 0.05 ? 1 : 0, // 5% kemungkinan dapat paus
+            paus: Math.random() < 0.01 ? 1 : 0, // Paus sangat langka
             kepiting: Math.floor(Math.random() * 1),
         };
 

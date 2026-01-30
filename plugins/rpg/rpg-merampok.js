@@ -3,9 +3,9 @@ const api = require('../../api_handler.js');
 
 
 const cooldown = 3600000; 
-const successRate = 0.60;  
-const fineAmount = 5000;  
-const targetMinMoney = 10000; 
+const successRate = 0.40;
+const fineAmount = 10000;  
+const targetMinMoney = 20000; 
 
 
 function clockString(ms) {
@@ -54,7 +54,7 @@ module.exports = {
             return processingMsg.edit(`Target terlalu miskin, tidak sepadan dengan risikonya.`);
         }
         if (Math.random() < successRate) {
-            const amountStolen = Math.floor(Math.random() * (targetData.money * 0.1)) + 1; // Rampok hingga 10% uang target
+            const amountStolen = Math.floor(Math.random() * (targetData.money * 0.05)) + 1; // Rampok hingga 5% uang target
 
             authorData.money += amountStolen;
             targetData.money -= amountStolen;

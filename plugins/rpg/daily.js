@@ -1,71 +1,88 @@
-const { EmbedBuilder } = require('discord.js');
-const api = require('../../api_handler.js');
+const { EmbedBuilder } = require("discord.js");
+const api = require("../../api_handler.js");
 
-// --- Konfigurasi Hadiah ---
-const dailyReward = 5000;
-const dailyExp = 100; 
-const cooldown = 86400000; 
+// --- Konfigurasi Hadiah (DISAMAKAN DENGAN BACKEND BARY UPDATE! ) ---
+const dailyReward = 10000;
+const dailyExp = 200;
+const dailyDiamond = 1;
+const cooldown = 86400000;
 // ---
 
-/**
- * Mengubah milidetik menjadi format waktu yang mudah dibaca.
- * @param {number} duration - Durasi dalam milidetik.
- * @returns {string}
- */
 function msToTime(duration) {
-    const seconds = Math.floor((duration / 1000) % 60);
-    const minutes = Math.floor((duration / (1000 * 60)) % 60);
-    const hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+  const seconds = Math.floor((duration / 1000) % 60);
+  const minutes = Math.floor((duration / (1000 * 60)) % 60);
+  const hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
 
-    let timeString = "";
-    if (hours > 0) timeString += `${hours} Jam `;
-    if (minutes > 0) timeString += `${minutes} Menit `;
-    if (seconds > 0) timeString += `${seconds} Detik`;
+  let timeString = "";
+  if (hours > 0) timeString += `${hours} Jam `;
+  if (minutes > 0) timeString += `${minutes} Menit `;
+  if (seconds > 0) timeString += `${seconds} Detik`;
 
-    return timeString.trim();
+  return timeString.trim();
 }
 
 module.exports = {
   prefix: "daily",
   category: "rpg",
   aliases: ["claim"],
-  
+
   async execute(message, args, client) {
     const userId = message.author.id;
     const username = message.author.username;
 
     try {
-        const userData = await api.getUser(userId, username);
-        const lastClaim = userData.lastDaily || 0;
-        const currentTime = Date.now();
+      // 1. Ambil data user terbaru dari Backend Go
+      const userData = await api.getUser(userId, username);
 
-        if (currentTime - lastClaim < cooldown) {
-            const remainingTime = cooldown - (currentTime - lastClaim);
-            return message.reply(`🎁 Anda sudah mengambil hadiah harian.\nSilakan kembali lagi dalam **${msToTime(remainingTime)}**.`);
-        }
+      // Pastikan properti lastDaily ada (handle jika user baru)
+      const lastClaim = userData.lastDaily || 0;
+      const currentTime = Date.now();
 
-        userData.money += dailyReward;
-        userData.rpg.exp += dailyExp; 
-        userData.lastDaily = currentTime;
+      // 2. Cek Cooldown (Frontend Check)
+      if (currentTime - lastClaim < cooldown) {
+        const remainingTime = cooldown - (currentTime - lastClaim);
+        return message.reply(
+          `🎁 Anda sudah mengambil hadiah harian.\nSilakan kembali lagi dalam **${msToTime(remainingTime)}**.`,
+        );
+      }
 
-        await api.updateUser(userId, userData);
+      // 3. Update Data (PERBAIKAN DISINI)
 
-        const embed = new EmbedBuilder()
-            .setColor(0x2ECC71)
-            .setTitle("🎉 Hadiah Harian Berhasil Diklaim!")
-            .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
-            .addFields(
-                { name: 'Hadiah Diterima', value: `💰 **+${dailyReward.toLocaleString('id-ID')}** Money\n✨ **+${dailyExp.toLocaleString('id-ID')}** Exp` },
-                { name: 'Total Milikmu Sekarang', value: `💰 ${userData.money.toLocaleString('id-ID')} Money` }
-            )
-            .setFooter({ text: "Kembali lagi besok!" })
-            .setTimestamp();
+      // Update Money
+      userData.money = (userData.money || 0) + dailyReward;
 
-        await message.reply({ embeds: [embed] });
+      // Update Diamond (PINDAHKAN KE ROOT, BUKAN RPG)
+      userData.diamond = (userData.diamond || 0) + dailyDiamond;
 
+      // Update Exp (Exp biasanya ada di dalam RPG, ini sudah benar jika struct kamu begitu)
+      if (!userData.rpg) userData.rpg = {};
+      userData.rpg.exp = (userData.rpg.exp || 0) + dailyExp;
+
+      // Update Waktu
+      userData.lastDaily = currentTime;
+
+      // 4. Kirim data yang sudah dihitung Frontend ke Backend
+      // (Catatan: Ini akan menimpa logic di Go, tapi setidaknya angkanya sekarang benar)
+      await api.updateUser(userId, userData);
+
+      const embed = new EmbedBuilder()
+        .setColor(0x2ecc71)
+        .setTitle("🎉 Hadiah Harian Berhasil Diklaim!")
+        .setAuthor({
+          name: message.author.username,
+          iconURL: message.author.displayAvatarURL(),
+        })
+        .addFields({
+          name: "Hadiah Diterima",
+          value: `💰 **+${dailyReward.toLocaleString("id-ID")}** Money\n✨ **+${dailyExp.toLocaleString("id-ID")}** Exp \n💎 **+${dailyDiamond.toLocaleString("id-ID")}** Diamond`,
+        })
+        .setFooter({ text: "Kembali lagi besok!" })
+        .setTimestamp();
+
+      await message.reply({ embeds: [embed] });
     } catch (error) {
-        console.error("[DAILY CMD ERROR]", error);
-        message.reply(`❌ Terjadi kesalahan: ${error.message}`);
+      console.error("[DAILY CMD ERROR]", error);
+      message.reply(`❌ Terjadi kesalahan: ${error.message}`);
     }
   },
 };

@@ -7,18 +7,19 @@ const cooldown = 5 * 60 * 1000; // 5 menit
 
 // --- Fungsi Helper ---
 function createMiningAreas() {
-    const areaNames = ["👑Emas", "🪙Perak", "💎Berlian", "💎Batu Permata", "☢️Uranium", "Emas Hitam", "Kristal", "Rubi", "Safir", "Topaz", "Ametis", "Zamrud"];
+    const areaNames = ["Emas", "Perak", "Berlian", "Batu Permata", "Uranium", "Emas Hitam", "Kristal", "Rubi", "Safir", "Topaz", "Ametis", "Zamrud"];
     return areaNames.map((name, i) => ({
-        area: `Tambang ${name}`,
-        keyword: name.toLowerCase().replace(/ /g, "_"),
-        reward: {
-            exp: 50 + (i * 20),
-            money: 100 + (i * 30),
-            diamond: Math.random() > 0.6 ? Math.floor(Math.random() * 3) + 1 : 0,
-            emas: Math.random() > 0.5 ? Math.floor(Math.random() * 5) + 1 : 0,
-            iron: Math.random() > 0.4 ? Math.floor(Math.random() * 7) + 1 : 0,
-            batu: Math.random() > 0.3 ? Math.floor(Math.random() * 10) + 1 : 0,
-        }
+      area: `Tambang ${name}`,
+      keyword: name.toLowerCase().replace(/ /g, "_"),
+      reward: {
+        exp: 20 + i * 5,
+        money: 50 + i * 10,
+        diamond: Math.random() > 0.995 ? 1 : 0, // Sangat langka
+        emas: Math.random() > 0.7 ? Math.floor(Math.random() * 2) + 1 : 0,
+        iron: Math.random() > 0.6 ? Math.floor(Math.random() * 2) + 1 : 0,
+        batu: Math.random() > 0.5 ? Math.floor(Math.random() * 3) + 1 : 0,
+        sampah: Math.random() > 0.5 ? Math.floor(Math.random() * 5) + 1 : 0,
+      },
     }));
 }
 

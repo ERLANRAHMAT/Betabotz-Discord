@@ -27,7 +27,7 @@ module.exports = {
     const betAmount = parseInt(args[1]);
 
     if (!opponent || isNaN(betAmount) || betAmount <= 0) {
-        return message.reply("Gunakan format: `!bertarung @user <jumlah_taruhan>`");
+        return message.reply("Gunakan format: `!bertarung @user <jumlah_taruhan (money)>`");
     }
     if (opponent.id === challenger.id) return message.reply("Tidak bisa bertarung dengan diri sendiri!");
     if (opponent.user.bot) return message.reply("Tidak bisa bertarung dengan bot!");

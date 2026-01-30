@@ -62,8 +62,8 @@ module.exports = {
         await delay(2000);
 
         // Hitung hadiah
-        const randomMoney = Math.floor(Math.random() * 20000) + 10000; // Antara 10,000 - 30,000
-        const randomExp = Math.floor(Math.random() * 1000) + 200;    // Antara 200 - 1200
+        const randomMoney = Math.floor(Math.random() * 2000) + 500; // Antara 500 - 2500
+        const randomExp = Math.floor(Math.random() * 100) + 20;    // Antara 20 - 120
 
         // 2. MODIFY: Ubah data di memori
         userData.money += randomMoney;

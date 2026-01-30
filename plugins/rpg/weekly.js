@@ -1,12 +1,11 @@
 const { EmbedBuilder } = require('discord.js');
-// [DIPERBARUI] Mengimpor handler API Anda, bukan database lokal
 const api = require('../../api_handler.js'); 
 
 // --- Konfigurasi Hadiah (Tetap Sama) ---
-const weeklyMoneyReward = 100000;
-const weeklyLimitReward = 10;
-const weeklydiamondtReward = 1;
-const weeklyExp = 300; 
+const weeklyMoneyReward = 25000; // Lebih kecil, biar tidak jomplang
+const weeklyLimitReward = 2;
+const weeklydiamondtReward = 1; // Diamond tetap langka, hanya 1 per minggu
+const weeklyExp = 150; 
 const cooldown = 604800000; // 7 hari dalam milidetik
 
 // Fungsi untuk format waktu (Tetap Sama)

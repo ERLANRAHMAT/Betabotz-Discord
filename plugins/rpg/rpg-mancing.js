@@ -1,14 +1,11 @@
 const { EmbedBuilder } = require('discord.js');
 const api = require('../../api_handler.js');
 
-// Set untuk melacak pengguna yang sedang menjalankan misi
 const activeMissions = new Set();
-const cooldown = 180000; // 3 menit dalam milidetik
+const cooldown = 180000; 
 
-// Fungsi helper untuk delay
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-// Fungsi untuk format waktu
 function formatTime(ms) {
     let m = Math.floor(ms / 60000) % 60;
     let s = Math.floor(ms / 1000) % 60;
@@ -29,7 +26,6 @@ module.exports = {
     }
 
     try {
-        // 1. GET: Ambil data user dari API
         const userData = await api.getUser(authorId, authorUsername);
 
         if ((userData.fishingrod || 0) <= 0) {
@@ -42,13 +38,11 @@ module.exports = {
         const lastMancing = userData.lastmancing || 0;
         const currentTime = Date.now();
 
-        // Cek Cooldown
         if (currentTime - lastMancing < cooldown) {
             const remainingTime = cooldown - (currentTime - lastMancing);
             return message.reply(` kamu baru saja memancing, istirahat dulu ya.\nKembali lagi dalam **${formatTime(remainingTime)}**.`);
         }
 
-        // Kunci pengguna agar tidak bisa menjalankan perintah kerja lain
         activeMissions.add(authorId);
 
         const embed = new EmbedBuilder().setColor(0x3498DB).setTitle("🎣 Misi Memancing Dimulai");
@@ -61,21 +55,26 @@ module.exports = {
         await missionMessage.edit({ embeds: [embed.setDescription("Terasa ada tarikan! Menarik pancing dengan sekuat tenaga!")] });
         await delay(5000);
 
-        // Hitung hasil tangkapan
         const catches = {
             nila: Math.floor(Math.random() * 2),
             lele: Math.floor(Math.random() * 2),
             bawal: Math.floor(Math.random() * 1),
             ikan: Math.floor(Math.random() * 2),
             udang: Math.floor(Math.random() * 1),
-            paus: Math.random() < 0.01 ? 1 : 0, // Paus sangat langka
+            paus: Math.random() < 0.01 ? 1 : 0, 
             kepiting: Math.floor(Math.random() * 1),
+            gurita: Math.random() < 0.005 ? 1 : 0,
+            cumi: Math.random() < 0.005 ? 1 : 0,
+            buntal: Math.random() < 0.005 ? 1 : 0,
+            dory: Math.random() < 0.005 ? 1 : 0,
+            lumba: Math.random() < 0.002 ? 1 : 0,
+            lobster: Math.random() < 0.003 ? 1 : 0,
+            hiu: Math.random() < 0.001 ? 1 : 0,
+            orca: Math.random() < 0.0005 ? 1 : 0,
         };
 
-        // Ambil data terbaru lagi sebelum diubah
         const finalUserData = await api.getUser(authorId, authorUsername);
         
-        // 2. MODIFY: Ubah data di memori
         let catchSummary = "";
         for (const fish in catches) {
             if (catches[fish] > 0) {
@@ -87,10 +86,8 @@ module.exports = {
         finalUserData.fishingroddurability = (finalUserData.fishingroddurability || 0) - 1;
         finalUserData.lastmancing = currentTime;
 
-        // 3. POST: Kirim kembali data yang sudah diperbarui ke API
         await api.updateUser(authorId, finalUserData);
 
-        // Tampilkan hasil akhir
         if (catchSummary === "") {
             catchSummary = "Sayang sekali kamu tidak mendapatkan ikan apapun...";
         }
@@ -108,7 +105,6 @@ module.exports = {
         console.error("[MANCING CMD ERROR]", error);
         message.reply(`❌ Terjadi kesalahan saat memancing: ${error.message}`);
     } finally {
-        // Selalu hapus kunci setelah misi selesai atau gagal
         activeMissions.delete(authorId);
     }
   },

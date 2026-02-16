@@ -18,7 +18,7 @@ function msToTime(duration) {
 module.exports = {
   prefix: "checkjail",
   category: "rpg",
-  aliases: ["cj", "jailstatus"],
+  aliases: ["cj", "jailstatus", "cekpenjara"],
   
   /**
    * @param {import('discord.js').Message} message
@@ -34,10 +34,10 @@ module.exports = {
         const currentTime = Date.now();
 
         if (jailInfo.status) {
+            // Penjara = cooldown 1 hari (24 jam)
             if (currentTime >= jailInfo.until) {
                 userData.jail = { status: false, reason: null, until: 0 };
                 await api.updateUser(targetUser.id, userData);
-                
                 return await processingMsg.edit(`🎉 **${targetUser.username}** telah dibebaskan dari penjara!`);
             } else {
                 const remainingTime = jailInfo.until - currentTime;

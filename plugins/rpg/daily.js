@@ -2,9 +2,8 @@ const { EmbedBuilder } = require("discord.js");
 const api = require("../../api_handler.js");
 
 // --- Konfigurasi Hadiah (DISAMAKAN DENGAN BACKEND BARY UPDATE! ) ---
-const dailyReward = 10000;
+const dailyReward = 30000;
 const dailyExp = 200;
-const dailyDiamond = 1;
 const cooldown = 86400000;
 // ---
 
@@ -31,14 +30,10 @@ module.exports = {
     const username = message.author.username;
 
     try {
-      // 1. Ambil data user terbaru dari Backend Go
       const userData = await api.getUser(userId, username);
-
-      // Pastikan properti lastDaily ada (handle jika user baru)
       const lastClaim = userData.lastDaily || 0;
       const currentTime = Date.now();
 
-      // 2. Cek Cooldown (Frontend Check)
       if (currentTime - lastClaim < cooldown) {
         const remainingTime = cooldown - (currentTime - lastClaim);
         return message.reply(
@@ -46,23 +41,12 @@ module.exports = {
         );
       }
 
-      // 3. Update Data (PERBAIKAN DISINI)
-
-      // Update Money
       userData.money = (userData.money || 0) + dailyReward;
 
-      // Update Diamond (PINDAHKAN KE ROOT, BUKAN RPG)
-      userData.diamond = (userData.diamond || 0) + dailyDiamond;
-
-      // Update Exp (Exp biasanya ada di dalam RPG, ini sudah benar jika struct kamu begitu)
       if (!userData.rpg) userData.rpg = {};
       userData.rpg.exp = (userData.rpg.exp || 0) + dailyExp;
-
-      // Update Waktu
       userData.lastDaily = currentTime;
 
-      // 4. Kirim data yang sudah dihitung Frontend ke Backend
-      // (Catatan: Ini akan menimpa logic di Go, tapi setidaknya angkanya sekarang benar)
       await api.updateUser(userId, userData);
 
       const embed = new EmbedBuilder()
@@ -74,7 +58,7 @@ module.exports = {
         })
         .addFields({
           name: "Hadiah Diterima",
-          value: `💰 **+${dailyReward.toLocaleString("id-ID")}** Money\n✨ **+${dailyExp.toLocaleString("id-ID")}** Exp \n💎 **+${dailyDiamond.toLocaleString("id-ID")}** Diamond`,
+          value: `💰 **+${dailyReward.toLocaleString("id-ID")}** Money\n✨ **+${dailyExp.toLocaleString("id-ID")}** Exp`,
         })
         .setFooter({ text: "Kembali lagi besok!" })
         .setTimestamp();

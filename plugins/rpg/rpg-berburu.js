@@ -43,6 +43,11 @@ module.exports = {
             return message.reply("❗ Senjatamu sudah rusak. Buat yang baru di `!craft`.");
         }
 
+        // Cek Armor
+       
+        const armorDur = userData.armordurability || 0;
+        let armorBonus = 0;
+
         // Cek Cooldown
         const lastHunt = userData.lastberburu || 0;
         const currentTime = Date.now();
@@ -56,41 +61,32 @@ module.exports = {
         const embed = new EmbedBuilder().setColor(0x228B22).setTitle("🏹 Misi Berburu Dimulai");
         const missionMessage = await message.reply({ embeds: [embed.setDescription("🔍 Mencari jejak mangsa di hutan...")] });
         
-        // Animasi
         await delay(5000);
         await missionMessage.edit({ embeds: [embed.setDescription("🐾 Mengikuti jejak...")] });
         await delay(5000);
         await missionMessage.edit({ embeds: [embed.setDescription("🎯 Menemukan target dan menyerang!")] });
         await delay(3000);
-
-        // Ambil data terbaru lagi sebelum diubah
         const finalUserData = await api.getUser(authorId, authorUsername);
         
-        // Hitung hasil buruan
         let huntSummary = "";
         for (const animal in huntLoot) {
             const info = huntLoot[animal];
-            // Peluang 50% untuk mendapatkan setiap jenis hewan
-            if (Math.random() < 0.5) {
+            if (Math.random() < (0.5 + armorBonus)) {
                 const amount = Math.floor(Math.random() * info.max) + 1;
                 finalUserData[animal] = (finalUserData[animal] || 0) + amount;
                 huntSummary += `${info.emoji} **${animal.charAt(0).toUpperCase() + animal.slice(1)}**: ${amount}\n`;
             }
         }
-        
-        // 2. MODIFY: Ubah data di memori
-        // Kurangi durability senjata yang punya durability paling tinggi
         if ((finalUserData.sworddurability || 0) > (finalUserData.bowdurability || 0)) {
             finalUserData.sworddurability -= 1;
         } else {
             finalUserData.bowdurability -= 1;
         }
         finalUserData.lastberburu = currentTime;
-
-        // 3. POST: Kirim kembali data yang sudah diperbarui ke API
+        if ( armorDur > 0) {
+            finalUserData.armordurability -= 1;
+        }
         await api.updateUser(authorId, finalUserData);
-
-        // Tampilkan hasil akhir
         if (huntSummary === "") {
             huntSummary = "Sayang sekali, semua buruanmu lolos kali ini...";
         }
@@ -113,7 +109,6 @@ module.exports = {
   },
 };
 
-// Salin fungsi clockString dari !taxi atau !copet
 function clockString(ms) {
     let h = Math.floor(ms / 3600000);
     let m = Math.floor(ms / 60000) % 60;

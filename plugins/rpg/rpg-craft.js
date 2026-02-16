@@ -2,9 +2,8 @@ const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentTyp
 const api = require('../../api_handler.js');
 const { shopItems } = require('./rpg-shop.js');
 
-// ==================== PUSAT DATA RESEP CRAFTING ====================
+// ==================== PUSAT DATA CRAFTING ====================
 // Untuk mengubah resep atau menambah item, cukup edit di sini!
-// Kunci (misal: 'pickaxe') harus sama dengan nama properti di database Anda.
 const recipes = {
     axe: 
     { name: 'Axe', emoji: '🪓', materials: { kayu: 15, batu: 10, iron: 15, string: 10 }, result: { axe: 1 }, durability: { axedurability: 40 } },
@@ -45,7 +44,7 @@ const recipes = {
         durability: { bowdurability: 40 }
     },
     pancingan: {
-        name: 'pancingan',
+        name: 'FishingRod',
         emoji: '🎣',
         materials: { kayu: 10, iron: 2, string: 20 },
         result: { fishingrod: 1 },
@@ -54,7 +53,7 @@ const recipes = {
     armor: {
         name: 'Armor',
         emoji: '🥼',
-        materials: { iron: 25, diamond: 5 }, // Resep disesuaikan agar lebih logis
+        materials: { iron: 25, diamond: 1 }, 
         result: { armor: 1 },
         durability: { armordurability: 50 }
     },
@@ -78,7 +77,6 @@ module.exports = {
     const authorId = message.author.id;
     const authorUsername = message.author.username;
 
-    // Jika tidak ada argumen, tampilkan daftar resep
     if (!itemToCraft) {
         const recipeList = Object.values(recipes).map(recipe => {
             const materials = Object.entries(recipe.materials)
@@ -124,12 +122,11 @@ module.exports = {
                 if (itemPrice) {
                     totalCost += itemPrice * needed;
                 } else {
-                    canBuyAll = false; // Tandai jika ada bahan yang tidak bisa dibeli
+                    canBuyAll = false; 
                 }
             }
         }
 
-        // --- LOGIKA BARU DENGAN TOMBOL ---
         if (missingMaterials.length > 0) {
             const missingList = missingMaterials.map(m => `- ${m.amount} ${m.name}`).join('\n');
             let description = `❌ Bahan tidak cukup! Kamu kekurangan:\n${missingList}`;

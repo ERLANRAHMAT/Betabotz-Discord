@@ -69,6 +69,14 @@ module.exports = {
         } else {
                         authorData.money = Math.max(0, authorData.money - fineAmount);
             authorData.warn = (authorData.warn || 0) + 1;
+            // Auto-penjara kalau warn user >= 5
+            if (authorData.warn >= 5) {
+                authorData.jail = { status: true, reason: "Terlalu banyak gagal merampok!", until: Date.now() + 24 * 60 * 60 * 1000 };
+                authorData.warn = 0;
+                await api.updateUser(authorId, authorData);
+                await processingMsg.edit("⛓️ Kamu tertangkap polisi karena terlalu sering gagal merampok! Kamu masuk penjara selama 1 hari.");
+                return;
+            }
             authorData.lastrob = currentTime;
             
             await api.updateUser(authorId, authorData);

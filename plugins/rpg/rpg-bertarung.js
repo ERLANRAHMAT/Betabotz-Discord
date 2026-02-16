@@ -60,11 +60,7 @@ module.exports = {
 
         collector.on('collect', async i => {
             if (i.user.id !== opponent.id) return i.reply({ content: 'Ini bukan tantangan untukmu!', ephemeral: true });
-            
-            // ==================== PERBAIKAN DI SINI ====================
-            await i.deferUpdate(); // Memberi tahu Discord agar menunggu
-            // ==========================================================
-            
+            await i.deferUpdate();
             collector.stop();
 
             if (i.customId === 'fight_decline') {
@@ -82,13 +78,38 @@ module.exports = {
                 const result = Math.random() >= 0.5;
                 const winner = result ? challenger : opponent;
                 const loser = result ? opponent : challenger;
-                
                 const finalChallengerData = await api.getUser(challenger.id, challenger.user.username);
                 const finalOpponentData = await api.getUser(opponent.id, opponent.user.username);
+                let loseReduction = 0;
+                let loserArmorLevel = finalChallengerData.armor;
+                let loserArmorDur = finalChallengerData.armordurability;
+                if (loser.id === opponent.id) {
+                    loserArmorLevel = finalOpponentData.armor;
+                    loserArmorDur = finalOpponentData.armordurability;
+                }
+                if (loserArmorLevel && loserArmorLevel > 0 && loserArmorDur > 0) {
+                    loseReduction = Math.min(0.5, 0.1 * loserArmorLevel); // max 50% reduction
+                }
 
-                finalChallengerData.money += (winner.id === challenger.id ? betAmount : -betAmount);
-                finalOpponentData.money += (winner.id === opponent.id ? betAmount : -betAmount);
+                let loss = betAmount;
+                if (loseReduction > 0) {
+                    loss = Math.floor(betAmount * (1 - loseReduction));
+                }
+                if (winner.id === challenger.id) {
+                    finalChallengerData.money += betAmount;
+                    finalOpponentData.money -= loss;
+                } else {
+                    finalChallengerData.money -= loss;
+                    finalOpponentData.money += betAmount;
+                }
                 finalChallengerData.lastWar = Date.now();
+
+                if (finalChallengerData.armor > 0 && finalChallengerData.armordurability > 0) {
+                    finalChallengerData.armordurability -= 1;
+                }
+                if (finalOpponentData.armor > 0 && finalOpponentData.armordurability > 0) {
+                    finalOpponentData.armordurability -= 1;
+                }
 
                 await Promise.all([
                     api.updateUser(challenger.id, finalChallengerData),
@@ -107,6 +128,9 @@ module.exports = {
                 
                 if (winner.id === challenger.id) resultEmbed.setColor(0x2ECC71);
                 else resultEmbed.setColor(0xE74C3C);
+                if (loseReduction > 0) {
+                    resultEmbed.addFields({ name: "Armor Effect", value: `Kerugian dikurangi ${Math.floor(loseReduction*100)}% karena armor!` });
+                }
 
                 await challengeMessage.edit({ embeds: [resultEmbed] });
                 activeGames.delete(challenger.id); activeGames.delete(opponent.id);

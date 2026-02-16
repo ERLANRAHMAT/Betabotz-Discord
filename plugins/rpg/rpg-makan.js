@@ -26,7 +26,7 @@ const consumables = {
     vodka: { name: 'Vodka', emoji: '🍷', restores: 'stamina', amount: 25 },
     // Medis (Health)
     bandage: { name: 'Bandage', emoji: '💉', restores: 'health', amount: 25 },
-    ganja: { name: 'Ganja', emoji: '☘️', restores: 'health', amount: 90 }, // Sesuai kode asli
+    ganja: { name: 'Ganja', emoji: '☘️', restores: 'health', amount: 90 }, 
 };
 const MAX_STAT = 100;
 // =========================================================
@@ -44,10 +44,7 @@ module.exports = {
     const amount = parseInt(args[1]) || 1;
 
     try {
-        // GET data user terbaru
         const userData = await api.getUser(authorId, authorUsername);
-
-        // Jika tidak ada argumen, tampilkan daftar makanan yang dimiliki
         if (!itemName) {
             const foodList = Object.entries(consumables).map(([key, item]) => {
                 const userAmount = userData[key] || 0;
@@ -73,7 +70,7 @@ module.exports = {
             return message.reply(`📦 Kamu tidak punya cukup **${item.name}**. Kamu hanya punya ${userItemCount}.`);
         }
 
-        const statToRestore = item.restores; // 'health' atau 'stamina'
+        const statToRestore = item.restores; // 'stamina' atau 'health'
         const currentStatValue = statToRestore === 'health' ? userData.rpg.health : userData[statToRestore];
         
         if (currentStatValue >= MAX_STAT) {
@@ -82,7 +79,6 @@ module.exports = {
 
         const oldStat = currentStatValue;
 
-        // MODIFY: Ubah data di memori
         userData[itemName] -= amount;
         const totalRestore = item.amount * amount;
         
@@ -92,7 +88,6 @@ module.exports = {
             userData[statToRestore] = Math.min(MAX_STAT, userData[statToRestore] + totalRestore);
         }
 
-        // POST: Kirim kembali data yang sudah diperbarui
         await api.updateUser(authorId, userData);
         
         const newStat = statToRestore === 'health' ? userData.rpg.health : userData[statToRestore];

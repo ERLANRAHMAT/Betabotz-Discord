@@ -5,11 +5,10 @@ const config = require("../../config");
 // ==================== PUSAT DATA TOKO ====================
 // Untuk mengubah harga atau menambah item, cukup edit di sini!
 const shopItems = {
-    // Kunci harus sama dengan properti di database
-    limit: { name: 'Limit', emoji: '🎟️', buyPrice: 100000, sellPrice: 25000, description: 'Beli 1 limit tambahan.' },
+    limit: { name: 'Limit', emoji: '🎟️', buyPrice: 100000, sellPrice: 50000, description: 'Beli 1 limit tambahan.' },
     potion: { name: 'Potion', emoji: '🧪', buyPrice: 20000, sellPrice: 10000, description: 'Memulihkan health & stamina.' },
-    diamond: { name: 'Diamond', emoji: '💎', buyPrice: 5000000, sellPrice: 2000000, description: 'Batu mulia langka.' },
-    emas: { name: 'Emas', emoji: '🟡', buyPrice: 100000, sellPrice: 20000, description: 'emas.' },
+    diamond: { name: 'Diamond', emoji: '💎', buyPrice: 5000000, sellPrice: 5000000, description: 'Batu mulia langka.' },
+    emas: { name: 'Emas', emoji: '🟡', buyPrice: 100000, sellPrice: 100000, description: 'emas.' },
     iron: { name: 'Besi', emoji: '🔩', buyPrice: 20000, sellPrice: 5000, description: 'Logam kuat untuk crafting.' },
     kayu: { name: 'Kayu', emoji: '🪵', buyPrice: 2000, sellPrice: 500, description: 'Sumber daya dasar.' },
     batu: { name: 'Batu', emoji: '🪨', buyPrice: 2000, sellPrice: 500, description: 'Sumber daya dasar.' },
@@ -21,6 +20,8 @@ const shopItems = {
     legendary: { name: 'Legendary Crate', emoji: '👑', buyPrice: 10000000, sellPrice: 10000000, description: 'Lootbox legendaris.' },
     coal: { name: 'Coal', emoji: '🪨', buyPrice: 1000, sellPrice: 500, description: 'Bahan bakar untuk memasak.' },
     umpan: { name: 'Umpan', emoji: '🪱', buyPrice: 1000, sellPrice: 300, description: 'Untuk memancing ikan.' },
+    bandage: { name: 'Bandage', emoji: '💉', buyPrice: 10000, sellPrice: 5000, description: 'Memulihkan health.' },
+    ganja: { name: 'Ganja', emoji: '☘️', buyPrice: 50000, sellPrice: 25000, description: 'Memulihkan banyak health.' },
 };
 // =========================================================
 

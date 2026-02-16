@@ -20,7 +20,7 @@ module.exports = {
                 .setColor(0xFFD700)
                 .setTitle("🎉 LEVEL UP!")
                 .setAuthor({ name: authorUsername, iconURL: message.author.displayAvatarURL() })
-                .setDescription(`Selamat, kamu telah naik dari **Level ${result.oldLevel}** ke **Level ${result.newLevel}**!`);
+                .setDescription(`Selamat, kamu telah naik dari **Level ${result.oldLevel}** ke **Level ${result.newLevel}**!\nCek profilmu untuk melihat statistik terbaru di !profile.`);
             
             await processingMsg.edit({ content: null, embeds: [embed] });
         } else {

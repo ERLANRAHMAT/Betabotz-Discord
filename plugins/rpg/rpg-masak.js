@@ -6,20 +6,20 @@ const { shopItems } = require('./rpg-shop.js');
 // ==================== PUSAT DATA RESEP MASAKAN ====================
 // Untuk mengubah resep atau menambah masakan, cukup edit di sini!
 const recipes = {
-    ayambakar: { name: 'Ayam Bakar', emoji: '🍖', ingredients: { ayam: 2, coal: 1 }, result: { ayambakar: 1 } },
-    ayamgoreng: { name: 'Ayam Goreng', emoji: '🍗', ingredients: { ayam: 2, coal: 1 }, result: { ayamgoreng: 1 } },
-    oporayam: { name: 'Opor Ayam', emoji: '🍜', ingredients: { ayam: 2, coal: 1 }, result: { oporayam: 1 } },
-    gulaiayam: { name: 'Gulai Ayam', emoji: '🍲', ingredients: { ayam: 2, coal: 1 }, result: { gulai: 1 } },
+    ayambakar: { name: 'AyamBakar', emoji: '🍖', ingredients: { ayam: 2, coal: 1 }, result: { ayambakar: 1 } },
+    ayamgoreng: { name: 'AyamGoreng', emoji: '🍗', ingredients: { ayam: 2, coal: 1 }, result: { ayamgoreng: 1 } },
+    oporayam: { name: 'OporAyam', emoji: '🍜', ingredients: { ayam: 2, coal: 1 }, result: { oporayam: 1 } },
+    gulaiayam: { name: 'GulaiAyam', emoji: '🍲', ingredients: { ayam: 2, coal: 1 }, result: { gulai: 1 } },
     steak: { name: 'Steak', emoji: '🥩', ingredients: { sapi: 2, coal: 1 }, result: { steak: 1 } },
     rendang: { name: 'Rendang', emoji: '🥘', ingredients: { sapi: 2, coal: 1 }, result: { rendang: 1 } },
-    babipanggang: { name: 'Babi Panggang', emoji: '🥠', ingredients: { babi: 2, coal: 1 }, result: { babipanggang: 1 } },
-    ikanbakar: { name: 'Ikan Bakar', emoji: '🐟', ingredients: { ikan: 2, coal: 1 }, result: { ikanbakar: 1 } },
-    lelebakar: { name: 'Lele Bakar', emoji: '🐠', ingredients: { lele: 2, coal: 1 }, result: { lelebakar: 1 } },
-    nilabakar: { name: 'Nila Bakar', emoji: '🐟', ingredients: { nila: 2, coal: 1 }, result: { nilabakar: 1 } },
-    bawalbakar: { name: 'Bawal Bakar', emoji: '🐡', ingredients: { bawal: 2, coal: 1 }, result: { bawalbakar: 1 } },
-    udangbakar: { name: 'Udang Bakar', emoji: '🦐', ingredients: { udang: 2, coal: 1 }, result: { udangbakar: 1 } },
-    pausbakar: { name: 'Paus Bakar', emoji: '🐳', ingredients: { paus: 2, coal: 1 }, result: { pausbakar: 1 } },
-    kepitingbakar: { name: 'Kepiting Bakar', emoji: '🦀', ingredients: { kepiting: 2, coal: 1 }, result: { kepitingbakar: 1 } },
+    babipanggang: { name: 'BabiPanggang', emoji: '🥠', ingredients: { babi: 2, coal: 1 }, result: { babipanggang: 1 } },
+    ikanbakar: { name: 'IkanBakar', emoji: '🐟', ingredients: { ikan: 2, coal: 1 }, result: { ikanbakar: 1 } },
+    lelebakar: { name: 'LeleBakar', emoji: '🐠', ingredients: { lele: 2, coal: 1 }, result: { lelebakar: 1 } },
+    nilabakar: { name: 'NilaBakar', emoji: '🐟', ingredients: { nila: 2, coal: 1 }, result: { nilabakar: 1 } },
+    bawalbakar: { name: 'BawalBakar', emoji: '🐡', ingredients: { bawal: 2, coal: 1 }, result: { bawalbakar: 1 } },
+    udangbakar: { name: 'UdangBakar', emoji: '🦐', ingredients: { udang: 2, coal: 1 }, result: { udangbakar: 1 } },
+    pausbakar: { name: 'PausBakar', emoji: '🐳', ingredients: { paus: 2, coal: 1 }, result: { pausbakar: 1 } },
+    kepitingbakar: { name: 'KepitingBakar', emoji: '🦀', ingredients: { kepiting: 2, coal: 1 }, result: { kepitingbakar: 1 } },
 };
 // Biaya "bahan bakar" untuk setiap kali memasak
 const cookingCost = { kayu: 5, coal: 5 };

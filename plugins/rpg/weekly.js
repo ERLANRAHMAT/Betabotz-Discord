@@ -1,15 +1,13 @@
 const { EmbedBuilder } = require('discord.js');
-// [DIPERBARUI] Mengimpor handler API Anda, bukan database lokal
 const api = require('../../api_handler.js'); 
 
-// --- Konfigurasi Hadiah (Tetap Sama) ---
-const weeklyMoneyReward = 100000;
-const weeklyLimitReward = 10;
-const weeklydiamondtReward = 1;
-const weeklyExp = 300; 
-const cooldown = 604800000; // 7 hari dalam milidetik
+const weeklyMoneyReward = 25000; 
+const weeklyLimitReward = 2;
+const weeklydiamondtReward = 1; 
+const weeklyExp = 150; 
+const cooldown = 604800000; 
 
-// Fungsi untuk format waktu (Tetap Sama)
+
 function msToTime(duration) {
     const seconds = Math.floor((duration / 1000) % 60);
     const minutes = Math.floor((duration / (1000 * 60)) % 60);
@@ -34,30 +32,22 @@ module.exports = {
 
     try {
 
-
-        // 1. GET: Ambil data user terbaru dari API
         const userData = await api.getUser(authorId, authorUsername);
 
         const lastClaim = userData.lastWeekly || 0;
         const currentTime = Date.now();
 
-        // 2. Lakukan Pengecekan Cooldown
         if (currentTime - lastClaim < cooldown) {
             const remainingTime = cooldown - (currentTime - lastClaim);
             return processingMsg.edit(`🎁 Anda sudah mengambil hadiah mingguan.\nSilakan kembali lagi dalam **${msToTime(remainingTime)}**.`);
         }
-
-        // 3. Ubah Data di Memori
         userData.money += weeklyMoneyReward;
         userData.limit += weeklyLimitReward;
         userData.diamond += weeklydiamondtReward;
         userData.rpg.exp += weeklyExp;
         userData.lastWeekly = currentTime;
 
-        // 4. POST: Kirim kembali seluruh objek user yang sudah diubah ke API
         await api.updateUser(authorId, userData);
-
-        // 5. Kirim Pesan Sukses
         const embed = new EmbedBuilder()
             .setColor(0x2ECC71)
             .setTitle("🎉 Hadiah Mingguan Berhasil Diklaim!")

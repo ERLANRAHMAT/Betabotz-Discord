@@ -4,8 +4,8 @@ const api = require('../../api_handler.js');
 // --- Konfigurasi Game ---
 const cooldown = 20000; // 20 detik
 const minBet = 100;
-const consolationPrize = 500;
-const emojis = ["💎", "💰", "🏆", "🎁", "⭐"]; // Emoji untuk slot
+const consolationPrize = 100; // Lebih kecil
+const emojis = ["💰", "🏆", "🎁", "⭐"]; // Hapus diamond dari slot
 
 // Fungsi helper untuk delay
 const delay = ms => new Promise(res => setTimeout(res, ms));
@@ -78,7 +78,7 @@ module.exports = {
         }
 
         let resultText;
-        const winMultiplier = 3; 
+        const winMultiplier = 2; // Menang hanya x2, tidak x3
         
         if (x[1] === y[1] && y[1] === z[1]) {
             const winnings = betAmount * (winMultiplier - 1);

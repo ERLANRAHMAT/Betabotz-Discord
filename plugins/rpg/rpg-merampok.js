@@ -3,9 +3,9 @@ const api = require('../../api_handler.js');
 
 
 const cooldown = 3600000; 
-const successRate = 0.60;  
-const fineAmount = 5000;  
-const targetMinMoney = 10000; 
+const successRate = 0.40;
+const fineAmount = 10000;  
+const targetMinMoney = 20000; 
 
 
 function clockString(ms) {
@@ -54,7 +54,7 @@ module.exports = {
             return processingMsg.edit(`Target terlalu miskin, tidak sepadan dengan risikonya.`);
         }
         if (Math.random() < successRate) {
-            const amountStolen = Math.floor(Math.random() * (targetData.money * 0.1)) + 1; // Rampok hingga 10% uang target
+            const amountStolen = Math.floor(Math.random() * (targetData.money * 0.05)) + 1; // Rampok hingga 5% uang target
 
             authorData.money += amountStolen;
             targetData.money -= amountStolen;
@@ -69,6 +69,14 @@ module.exports = {
         } else {
                         authorData.money = Math.max(0, authorData.money - fineAmount);
             authorData.warn = (authorData.warn || 0) + 1;
+            // Auto-penjara kalau warn user >= 5
+            if (authorData.warn >= 5) {
+                authorData.jail = { status: true, reason: "Terlalu banyak gagal merampok!", until: Date.now() + 24 * 60 * 60 * 1000 };
+                authorData.warn = 0;
+                await api.updateUser(authorId, authorData);
+                await processingMsg.edit("⛓️ Kamu tertangkap polisi karena terlalu sering gagal merampok! Kamu masuk penjara selama 1 hari.");
+                return;
+            }
             authorData.lastrob = currentTime;
             
             await api.updateUser(authorId, authorData);

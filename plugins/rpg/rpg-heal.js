@@ -25,7 +25,7 @@ module.exports = {
         const userData = await api.getUser(authorId, authorUsername);
 
         // [PERBAIKAN] Menggunakan userData.rpg.health
-        if ((userData.rpg.health || 0) >= MAX_HEALTH && (userData.stamina || 0) >= MAX_STAMINA) {
+        if ((userData.rpg.health) >= MAX_HEALTH && (userData.stamina || 0) >= MAX_STAMINA) {
             return message.reply("❤️ Stamina dan Health kamu sudah penuh!");
         }
 
@@ -44,7 +44,7 @@ module.exports = {
         }
         
         // Simpan nilai lama untuk ditampilkan
-        const oldHealth = userData.rpg.health || 0;
+        const oldHealth = userData.rpg.health ;
         const oldStamina = userData.stamina || 0;
 
         // 2. MODIFY: Ubah data di memori

@@ -1,24 +1,26 @@
 const { EmbedBuilder } = require('discord.js');
 const api = require('../../api_handler.js');
 
-// --- State Management & Konfigurasi ---
-const gameSessions = new Map(); // Kunci: userId
-const cooldown = 5 * 60 * 1000; // 5 menit
+const gameSessions = new Map(); 
+const cooldown = 15 * 60 * 1000;
 
-// --- Fungsi Helper ---
+
 function createMiningAreas() {
-    const areaNames = ["👑Emas", "🪙Perak", "💎Berlian", "💎Batu Permata", "☢️Uranium", "Emas Hitam", "Kristal", "Rubi", "Safir", "Topaz", "Ametis", "Zamrud"];
+    const areaNames = ["Emas", "Perak", "Berlian", "BatuPermata", "Uranium", "EmasHitam", "Kristal", "Rubi", "Safir", "Topaz", "Ametis", "Zamrud"];
     return areaNames.map((name, i) => ({
-        area: `Tambang ${name}`,
-        keyword: name.toLowerCase().replace(/ /g, "_"),
-        reward: {
-            exp: 50 + (i * 20),
-            money: 100 + (i * 30),
-            diamond: Math.random() > 0.6 ? Math.floor(Math.random() * 3) + 1 : 0,
-            emas: Math.random() > 0.5 ? Math.floor(Math.random() * 5) + 1 : 0,
-            iron: Math.random() > 0.4 ? Math.floor(Math.random() * 7) + 1 : 0,
-            batu: Math.random() > 0.3 ? Math.floor(Math.random() * 10) + 1 : 0,
-        }
+      area: `Tambang ${name}`,
+      keyword: name.toLowerCase().replace(/ /g, "_"),
+      reward: {
+        exp: 20 + i * 5,
+        money: 500 + i * 10,
+        diamond: Math.random() > 0.995 ? 1 : 0, 
+        emerald: Math.random() > 0.995 ? 1 : 0, 
+        coal: Math.random() > 0.4 ? Math.floor(Math.random() * 3) + 1 : 0, 
+        emas: Math.random() > 0.7 ? Math.floor(Math.random() * 2) + 1 : 0,
+        iron: Math.random() > 0.6 ? Math.floor(Math.random() * 2) + 1 : 0,
+        batu: Math.random() > 0.5 ? Math.floor(Math.random() * 3) + 1 : 0,
+        sampah: Math.random() > 0.5 ? Math.floor(Math.random() * 5) + 1 : 0,
+      },
     }));
 }
 
@@ -28,7 +30,6 @@ function formatTime(ms) {
     return `${m} menit ${s} detik`;
 }
 
-// --- Handler Perintah & Pesan ---
 module.exports = {
   prefix: "tambang",
   category: "rpg",
@@ -45,6 +46,12 @@ module.exports = {
 
         try {
             const userData = await api.getUser(authorId, authorUsername);
+            if ((userData.pickaxe || 0) <= 0) {
+                return message.reply("⛏️ Kamu tidak punya pickaxe! Craft dulu di `!craft pickaxe`.");
+            }
+            if ((userData.pickaxedurability || 0) <= 0) {
+                return message.reply("❗ Pickaxe-mu sudah rusak. Repair atau craft baru di `!craft pickaxe`.");
+            }
             const lastMine = userData.kerjasatu || 0;
             if (Date.now() - lastMine < cooldown) {
                 const remaining = cooldown - (Date.now() - lastMine);
@@ -97,19 +104,23 @@ module.exports = {
     if (userInput === currentArea.keyword) {
         const processingMsg = await message.reply(`⛏️ Menambang di **${currentArea.area}**...`);
         try {
-            // Pola GET -> MODIFY -> POST
             const userData = await api.getUser(authorId, message.author.username);
-            
+            if ((userData.pickaxe || 0) <= 0) {
+                await processingMsg.edit("⛏️ Kamu tidak punya pickaxe! Craft dulu di `!craft pickaxe`.");
+                gameSessions.delete(authorId);
+                return;
+            }
+            if ((userData.pickaxedurability || 0) <= 0) {
+                await processingMsg.edit("❗ Pickaxe-mu sudah rusak. Repair atau craft baru di `!craft pickaxe`.");
+                gameSessions.delete(authorId);
+                return;
+            }
+
             const reward = currentArea.reward;
             let rewardText = "";
+            // jadi setiap kali nambang health pickaxe berkurang 2
+            userData.pickaxedurability -= 2;
 
-            // Tambahkan hadiah ke data pengguna
-            userData.rpg.exp += reward.exp;
-            rewardText += `✨ +${reward.exp} XP\n`;
-
-            userData.money += reward.money;
-            rewardText += `💰 +${reward.money} Money\n`;
-            
             for (const resource in reward) {
                 if (typeof userData[resource] === 'number' && typeof reward[resource] === 'number') {
                     userData[resource] += reward[resource];
@@ -117,7 +128,6 @@ module.exports = {
                 }
             }
 
-            // Update cooldown setelah aksi pertama
             if (session.currentArea === 0) {
                 userData.kerjasatu = Date.now();
             }
@@ -128,17 +138,15 @@ module.exports = {
             
             let replyEmbed;
             if (session.currentArea >= session.areas.length) {
-                // Selesai
                 replyEmbed = new EmbedBuilder()
                     .setColor(0x2ECC71).setTitle("🎉 Selamat!")
-                    .setDescription(`Kamu telah menyelesaikan semua area pertambangan!\n\n**Total Hadiah Terakhir:**\n${rewardText}`);
+                    .setDescription(`Kamu telah menyelesaikan semua area pertambangan!\n\n**Total Hadiah Terakhir:**\n${rewardText}\n\nDurability pickaxe tersisa: **${userData.pickaxedurability}**`);
                 gameSessions.delete(authorId);
             } else {
-                // Lanjut ke area berikutnya
                 const nextArea = session.areas[session.currentArea];
                 replyEmbed = new EmbedBuilder()
                     .setColor(0x795548).setTitle(`✅ Berhasil Menambang di ${currentArea.area}!`)
-                    .setDescription(`Kamu mendapatkan:\n${rewardText}\n\nSekarang kamu berada di **${nextArea.area}**.\nKetik \`${nextArea.keyword}\` untuk melanjutkan.`)
+                    .setDescription(`Kamu mendapatkan:\n${rewardText}\n\nSekarang kamu berada di **${nextArea.area}**.\nKetik \`${nextArea.keyword}\` untuk melanjutkan.\n\nDurability pickaxe tersisa: **${userData.pickaxedurability}**`)
                     .setFooter({ text: "Ketik `stop` untuk berhenti." });
             }
             await processingMsg.edit({ content: null, embeds: [replyEmbed] });

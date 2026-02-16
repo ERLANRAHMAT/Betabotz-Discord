@@ -5,13 +5,55 @@ const levelHandler = require('../../level_handler.js');
 // ==================== PUSAT DATA PEKERJAAN ====================
 // Hadiah sekarang berupa nilai maksimal yang bisa didapat secara acak
 const JOBS_DATA = {
-    gojek: { name: 'Gojek', emoji: '🛵', specialCommand: '`!antar @user`', rewards: { moneyMax: 11000, expMax: 100 }, cooldown: 3600000 }, // 1 jam
-    kurir: { name: 'Kurir', emoji: '📦', specialCommand: 'Tidak ada', rewards: { moneyMax: 15000, expMax: 90 }, cooldown: 3600000 }, // 1 jam
-    'karyawan indomaret': { name: 'Karyawan Indomaret', emoji: '🏪', specialCommand: 'Tidak ada', rewards: { moneyMax: 27000, expMax: 120 }, cooldown: 5400000 }, // 1.5 jam
-    polisi: { name: 'Polisi', emoji: '👮', specialCommand: '`!penjara @user`', rewards: { moneyMax: 31000, expMax: 150 }, cooldown: 7200000 }, // 2 jam
-    dokter: { name: 'Dokter', emoji: '🧑‍⚕️', specialCommand: '`!heal @user`', rewards: { moneyMax: 150000, expMax: 300 }, cooldown: 10800000 }, // 3 jam
-    developer: { name: 'Developer', emoji: '💻', specialCommand: '`!code` (Contoh)', rewards: { moneyMax: 200000, expMax: 400 }, cooldown: 14400000 }, // 4 jam
-    trader: { name: 'Trader', emoji: '📈', specialCommand: '`!invest` (Contoh)', rewards: { moneyMax: 500000, expMax: 250 }, cooldown: 7200000 }, // 2 jam
+  gojek: {
+    name: "Gojek",
+    emoji: "🛵",
+    specialCommand: "`!antar @user`",
+    rewards: { moneyMax: 11000, expMax: 100 },
+    cooldown: 3600000,
+  }, // 5 menit
+  kurir: {
+    name: "Kurir",
+    emoji: "📦",
+    specialCommand: "`!antarbarang @user <barang>`",
+    rewards: { moneyMax: 15000, expMax: 90 },
+    cooldown: 3600000,
+  }, // 1 jam
+  karyawanindomaret: {
+    name: "karyawanindomaret",
+    emoji: "🏪",
+    specialCommand: "Tidak ada",
+    rewards: { moneyMax: 27000, expMax: 120 },
+    cooldown: 5400000,
+  }, // 1.5 jam
+  polisi: {
+    name: "Polisi",
+    emoji: "👮",
+    specialCommand: "`!penjara @user`",
+    rewards: { moneyMax: 31000, expMax: 150 },
+    cooldown: 7200000,
+  }, // 2 jam
+  dokter: {
+    name: "Dokter",
+    emoji: "🧑‍⚕️",
+    specialCommand: "`!healuser @user`",
+    rewards: { moneyMax: 150000, expMax: 300 },
+    cooldown: 10800000,
+  }, // 3 jam
+  developer: {
+    name: "Developer",
+    emoji: "💻",
+    specialCommand: "`!code` (Contoh)",
+    rewards: { moneyMax: 200000, expMax: 400 },
+    cooldown: 14400000,
+  }, // 4 jam
+  trader: {
+    name: "Trader",
+    emoji: "📈",
+    specialCommand: "`!invest` (Contoh)",
+    rewards: { moneyMax: 500000, expMax: 250 },
+    cooldown: 7200000,
+  }, // 2 jam
 };
 // =========================================================
 
@@ -33,6 +75,10 @@ module.exports = {
     const subCommand = args[0]?.toLowerCase();
 
     try {
+        if (subCommand && ['antar','heal','code','invest'].includes(subCommand)) {
+            return message.reply(`Gunakan perintah khusus: \`!${subCommand}\` secara langsung. Contoh: \`!${subCommand} @user\` (jika butuh target).`);
+        }
+
         if (!subCommand) {
             const userData = await api.getUser(authorId, authorUsername);
             const currentJobKey = userData.job?.toLowerCase().replace(/ /g, '') || 'pengangguran';
@@ -69,12 +115,44 @@ module.exports = {
 
         if (subCommand === 'work') {
             const userData = await api.getUser(authorId, authorUsername);
-            
-            if (userData.jail) return message.reply("⛓️ Kamu tidak bisa bekerja karena ada di penjara!");
+            if (userData.jail?.status) {
+                if (Date.now() >= (userData.jail.until || 0)) {
+                    userData.jail = { status: false, reason: null, until: 0 };
+                    await api.updateUser(authorId, userData);
+                } else {
+                    return message.reply(
+                      "⛓️ Kamu tidak bisa bekerja karena ada di penjara!, !keluarpenjara untuk keluar dari penjara.",
+                    );
+                }
+            }
 
             const currentJobKey = userData.job?.toLowerCase().replace(/ /g, '');
             if (!currentJobKey || !JOBS_DATA[currentJobKey]) {
                 return message.reply("Kamu pengangguran! Cari pekerjaan dulu dengan `!job apply <nama>`.");
+            }
+
+            if (currentJobKey === 'gojek') {
+                const motor = userData.motor;
+                if (!motor || !motor.status || typeof motor.motorGrade !== "string") {
+                    return message.reply("Kamu harus punya motor aktif untuk bekerja sebagai Gojek! Beli di `!motor buy <grade>`.");
+                }
+                let MOTOR_GRADES;
+                try {
+                    MOTOR_GRADES = require('./rpg-motor.js').MOTOR_GRADES;
+                } catch (e) {
+                    return message.reply("Terjadi error internal pada data motor.");
+                }
+                const gradeData = MOTOR_GRADES && MOTOR_GRADES[motor.motorGrade];
+                if (!gradeData) {
+                    return message.reply("Data motor tidak valid. Silakan jual motor lama dan beli ulang.");
+                }
+                if (typeof motor.Bensin !== "number" || motor.Bensin < 10) return message.reply("Bensin motor habis! Isi dulu dengan `!motor bensin <jumlah>`.");
+                if (typeof motor.Durability !== "number" || motor.Durability < 5) return message.reply("Durability motor terlalu rendah! Repair dulu dengan `!motor repair <jumlah>`.");
+
+                motor.Bensin -= 10;
+                motor.Durability -= 5;
+                userData.motor = motor;
+                await api.updateUser(authorId, userData);
             }
 
             const jobInfo = JOBS_DATA[currentJobKey];
@@ -98,12 +176,12 @@ module.exports = {
                 .setDescription(`Kamu telah bekerja sebagai **${jobInfo.name}** dan mendapatkan:\n\n💰 **+${moneyGained.toLocaleString('id-ID')}** Money\n✨ **+${expGained}** XP`);
             await message.reply({ embeds: [embed] });
 
-            const levelUpInfo = await levelHandler.checkLevelUp(authorId, authorUsername);
-            if (levelUpInfo.leveledUp) {
-                const levelUpEmbed = new EmbedBuilder().setColor(0xFFD700).setTitle("🎉 LEVEL UP!")
-                    .setDescription(`Selamat, kamu telah mencapai **Level ${levelUpInfo.newLevel}**!`);
-                await message.channel.send({ embeds: [levelUpEmbed] });
-            }
+            // const levelUpInfo = await levelHandler.checkLevelUp(authorId, authorUsername);
+            // if (levelUpInfo.leveledUp) {
+            //     const levelUpEmbed = new EmbedBuilder().setColor(0xFFD700).setTitle("🎉 LEVEL UP!")
+            //         .setDescription(`Selamat, kamu telah mencapai **Level ${levelUpInfo.newLevel}**!`);
+            //     await message.channel.send({ embeds: [levelUpEmbed] });
+            // }
         }
     } catch (error) {
         console.error("[JOB CMD ERROR]", error);

@@ -23,6 +23,7 @@ module.exports = {
     .setName('ultah')
     .setDescription('Mengelola sistem pengingat ulang tahun via webhook.')
     .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild)
+    
     .addSubcommand(sub => sub.setName('add').setDescription('Menambah data ulang tahun baru ke webhook.')
         .addStringOption(opt => opt.setName('webhook_url').setDescription('URL webhook dari channel target').setRequired(true)) // Opsi baru
         .addUserOption(opt => opt.setName('user').setDescription('Pengguna yang berulang tahun').setRequired(true))
@@ -33,6 +34,7 @@ module.exports = {
     .addSubcommand(sub => sub.setName('remove').setDescription('Menghapus data ulang tahun pengguna dari webhook.')
         .addStringOption(opt => opt.setName('webhook_url').setDescription('URL webhook dari channel target').setRequired(true)) // Opsi baru
         .addUserOption(opt => opt.setName('user').setDescription('Pengguna yang data ulang tahunnya akan dihapus').setRequired(true)))
+        
     // .addSubcommand(sub => sub.setName('update').setDescription('Mengubah tanggal ultah atau nama/avatar webhook.')
     //     .addStringOption(opt => opt.setName('webhook_url').setDescription('URL webhook dari channel target').setRequired(true)) // Opsi baru
     //     .addUserOption(opt => opt.setName('user').setDescription('Pengguna yang datanya akan diubah (opsional)'))
@@ -40,13 +42,14 @@ module.exports = {
     //     .addStringOption(opt => opt.setName('nama_bot').setDescription('Nama baru untuk bot pengingat (opsional)'))
     //     .addStringOption(opt => opt.setName('avatar_url').setDescription('URL avatar baru untuk bot (opsional)')))
     .addSubcommand(sub => sub.setName('terdekat').setDescription('Melihat 5 ulang tahun terdekat dari sebuah webhook.')
+        .addStringOption(opt => opt.setName('webhook_url').setDescription('URL webhook dari channel target').setRequired(true))) // Opsi baru
+    .addSubcommand(sub => sub.setName('semua').setDescription('Melihat semua ulang tahun dari sebuah webhook.')
         .addStringOption(opt => opt.setName('webhook_url').setDescription('URL webhook dari channel target').setRequired(true))), // Opsi baru
-  
   category: "tools",
   
   async execute(interaction) {
     const subCommand = interaction.options.getSubcommand();
-    const isPublicCommand = subCommand === 'terdekat';
+    const isPublicCommand = subCommand === 'terdekat' || subCommand === 'semua';
 
     if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild) && !isPublicCommand) {
         return interaction.reply({ content: "❌ Anda perlu izin 'Manage Server' untuk perintah ini.", ephemeral: true });
@@ -123,6 +126,29 @@ module.exports = {
                 const list = birthdays.map(b => `• **${b.name}** - ${b.date}`).join('\n');
                 const embed = new EmbedBuilder().setColor(0x0099FF).setTitle("🎂 Ulang Tahun Terdekat").setDescription(list);
                 return interaction.editReply({ embeds: [embed] });
+            }
+            case 'semua': {
+              const response = await publicApi.get(endpoint, {
+                params: { webhookUrl },
+              });
+
+              const birthdays = response.data.data?.upcomingBirthdays;
+              if (!birthdays || birthdays.length === 0) {
+                return interaction.editReply(
+                  "Tidak ada ulang tahun yang terdaftar di webhook ini."
+                );
+              }
+
+              const list = birthdays
+                .map((b) => `• **${b.name}** - ${b.date}`)
+                .join("\n");
+
+              const embed = new EmbedBuilder()
+                .setColor(0x0099ff)
+                .setTitle("🎂 Ulang Tahun Terdekat")
+                .setDescription(list);
+
+              return interaction.editReply({ embeds: [embed] });
             }
         }
     } catch (error) {

@@ -6,7 +6,6 @@ const fs = require("fs");
 const path = require("path");
 const { spawn } = require('child_process');
 const { findInCache, getCacheKey, tempDir } = require('../../cache_handler'); // Impor cache handler
-const yts = require("yt-search");
 const { QueueRepeatMode } = require('discord-player'); 
 
 const queueMap = new Map();
@@ -24,14 +23,14 @@ async function fetchTrackInfo(input) {
         const d = data?.result;
         if (!d) throw new Error("Gagal mengambil info SoundCloud.");
         trackInfo = { url: input, title: d.title, thumbnail: d.thumbnail, audioUrl: d.url, user: null, duration: d.duration || "-" };
-    } else {
-        const res = await yts(input);
-        const vid = res.videos?.[0];
-        if (!vid) throw new Error("Lagu tidak ditemukan di YouTube.");
-        const { data } = await axios.get(`https://api.betabotz.eu.org/api/download/yt?url=${encodeURIComponent(vid.url)}&apikey=${config.apikey_lann}`);
+    } else if (/youtube\.com|youtu\.be/i.test(input)) {
+        const { data } = await axios.get(`https://api.betabotz.eu.org/api/download/yt?url=${encodeURIComponent(input)}&apikey=${config.apikey_lann}`);
         const d = data?.result;
         if (!d || !d.mp3) throw new Error("Gagal mengambil link audio dari API YouTube.");
-        trackInfo = { url: vid.url, title: vid.title, thumbnail: vid.thumbnail, audioUrl: d.mp3, user: null, duration: vid.duration.timestamp || "-" };
+        trackInfo = { url: input, title: d.title || "YouTube Audio", thumbnail: d.thumb || d.thumbnail || "", audioUrl: d.mp3, user: null,duration: (d.duration && (d.duration.timestamp || d.duration)) || "-"
+        };
+    } else {
+        throw new Error("Input tidak dikenali. Harap masukkan URL YouTube, Spotify, SoundCloud, atau kata kunci pencarian.");
     }
     return trackInfo;
 }
@@ -140,28 +139,77 @@ async function handleRepeat(message, args) {
 // }
 
 function downloadAndCache(audioUrl, cachePath) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         console.log(`[Downloader] Mengunduh dari: ${audioUrl}`);
-        const ffmpeg = spawn('ffmpeg', [
-            '-i', audioUrl,
-            '-c:a', 'libopus',
-            '-b:a', '128k',
-            '-f', 'opus',
-            cachePath,
-            '-loglevel', 'error',
-            '-y' // Menimpa file jika sudah ada
-        ]);
-        ffmpeg.on('close', (code) => {
-            if (code === 0) {
-                console.log(`[Cache] Berhasil menyimpan file ke: ${cachePath}`);
-                resolve(cachePath);
+        const isYoutubeMp4 = /youtube\.com|youtu\.be|ydl\.ymcdn\.org\/api\/v1\/download\//i.test(audioUrl);
+        const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36';
+        let tempMp4 = null;
+        try {
+            if (isYoutubeMp4) {
+                const tmp = require('tmp');
+                tempMp4 = tmp.tmpNameSync({ postfix: '.mp4' });
+                const writer = fs.createWriteStream(tempMp4);
+                const response = await axios.get(audioUrl, {
+                    responseType: 'stream',
+                    headers: { 'User-Agent': userAgent },
+                    timeout: 60000
+                });
+                await new Promise((res, rej) => {
+                    response.data.pipe(writer);
+                    writer.on('finish', res);
+                    writer.on('error', rej);
+                });
+                const ffmpeg = spawn('ffmpeg', [
+                    '-i', tempMp4,
+                    '-vn',
+                    '-acodec', 'libopus',
+                    '-b:a', '128k',
+                    '-f', 'opus',
+                    cachePath,
+                    '-loglevel', 'error',
+                    '-y'
+                ]);
+                ffmpeg.on('close', (code) => {
+                    try { if (fs.existsSync(tempMp4)) fs.unlinkSync(tempMp4); } catch (e) {}
+                    if (code === 0) {
+                        console.log(`[Cache] Berhasil menyimpan file ke: ${cachePath}`);
+                        resolve(cachePath);
+                    } else {
+                        if (fs.existsSync(cachePath)) fs.unlinkSync(cachePath);
+                        reject(new Error(`FFmpeg keluar dengan kode ${code}`));
+                    }
+                });
+                ffmpeg.stderr.on('data', data => console.error(`[FFMPEG Cache Error]: ${data.toString()}`));
+                ffmpeg.on('error', err => {
+                    try { if (fs.existsSync(tempMp4)) fs.unlinkSync(tempMp4); } catch (e) {}
+                    reject(err);
+                });
             } else {
-                if (fs.existsSync(cachePath)) fs.unlinkSync(cachePath);
-                reject(new Error(`FFmpeg keluar dengan kode ${code}`));
+                const ffmpeg = spawn('ffmpeg', [
+                    '-i', audioUrl,
+                    '-c:a', 'libopus',
+                    '-b:a', '128k',
+                    '-f', 'opus',
+                    cachePath,
+                    '-loglevel', 'error',
+                    '-y'
+                ]);
+                ffmpeg.on('close', (code) => {
+                    if (code === 0) {
+                        console.log(`[Cache] Berhasil menyimpan file ke: ${cachePath}`);
+                        resolve(cachePath);
+                    } else {
+                        if (fs.existsSync(cachePath)) fs.unlinkSync(cachePath);
+                        reject(new Error(`FFmpeg keluar dengan kode ${code}`));
+                    }
+                });
+                ffmpeg.stderr.on('data', data => console.error(`[FFMPEG Cache Error]: ${data.toString()}`));
+                ffmpeg.on('error', err => reject(err));
             }
-        });
-        ffmpeg.stderr.on('data', data => console.error(`[FFMPEG Cache Error]: ${data.toString()}`));
-        ffmpeg.on('error', err => reject(err));
+        } catch (err) {
+            if (tempMp4 && fs.existsSync(tempMp4)) try { fs.unlinkSync(tempMp4); } catch (e) {}
+            reject(err);
+        }
     });
 }
  
@@ -197,7 +245,10 @@ async function playNext(guildId) {
         const resource = createAudioResource(streamPath);
         data.player.play(resource);
 
-        const embed = new EmbedBuilder().setColor(0x7289DA).setTitle("▶️ Sedang Diputar").setDescription(`[${track.title}](${track.url})`).setThumbnail(track.thumbnail).setFooter({ text: `Diminta oleh: ${track.user.username}`, iconURL: track.user.displayAvatarURL() });
+        let embed = new EmbedBuilder().setColor(0x7289DA).setTitle("▶️ Sedang Diputar").setDescription(`[${track.title}](${track.url})`).setFooter({ text: `Diminta oleh: ${track.user.username}`, iconURL: track.user.displayAvatarURL() });
+        if (track.thumbnail && typeof track.thumbnail === 'string' && track.thumbnail.trim() !== '') {
+            embed = embed.setThumbnail(track.thumbnail);
+        }
         await data.textChannel.send({ embeds: [embed] });
     } catch (e) {
         console.error("Gagal memutar lagu:", e);

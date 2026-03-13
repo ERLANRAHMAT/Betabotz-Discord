@@ -53,7 +53,7 @@ const recipes = {
     armor: {
         name: 'Armor',
         emoji: '🥼',
-        materials: { iron: 25, diamond: 1 }, 
+        materials: { iron: 25, kayu: 10,   batu: 20  }, 
         result: { armor: 1 },
         durability: { armordurability: 50 }
     },

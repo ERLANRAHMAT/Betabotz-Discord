@@ -56,7 +56,7 @@ module.exports = {
 
   subCommands: {
     start: {
-      aliases: ["mulai", "mulaigiveaway", "startgiveaway"],
+      aliases: ["mulaigiveaway", "startgiveaway"],
       /** @param {import('discord.js').Message} message */
       handler: async (message, args, client) => {
         const channelId = message.channel.id;

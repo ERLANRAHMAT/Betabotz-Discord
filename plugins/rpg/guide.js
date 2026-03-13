@@ -36,7 +36,7 @@ module.exports = {
         },
         {
           name: "⛏️ Tambang & Crafting",
-          value: "`!tambang start`, `!craft <item>`",
+          value: "`!tambang start`, `!craft <item>`,`!repair`",
         },
         { name: "🪓 Nebang Kayu", value: "`!nebang`" },
         { name: "💊 Heal & Makan", value: "`!heal`, `!makan <item>`" },

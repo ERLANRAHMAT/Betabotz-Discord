@@ -197,7 +197,7 @@ async function presentWaifu(originalMessage, author, waifuData, remaining) {
             const userData = await api.getUser(author.id, author.username);
             if ((userData.money || 0) < 100000) {
               return await response.edit({
-                content: `❌ Kamu butuh minimal **100.000** uang untuk claim waifu!`,
+                content: `❌ Kamu butuh minimal **100.000** uang untuk claim waifu, cek !guide untuk mendapatkan uang`,
                 embeds: [],
                 components: [],
               });
@@ -519,24 +519,23 @@ async function handleMarry(message, args, client) {
         const userData = await api.getUser(userId, message.author.username);
         if ((userData.money || 0) < 2000000) {
           return await response.edit({
-            content: `❌ Kamu butuh minimal **2.000.000** uang untuk menikahi waifu!`,
+            content: `❌ Kamu butuh minimal **2.000.000** uang untuk menikahi waifu, cek !guide untuk mendapatkan uang`,
             components: [],
           });
         }
         if ((userData.diamond || 0) < 20) {
           return await response.edit({
-            content: `❌ Kamu butuh minimal **20 diamond** untuk menikahi waifu!`,
+            content: `❌ Kamu butuh minimal **20 diamond** untuk menikahi waifu, cek !guide untuk mendapatkan diamond`,
             components: [],
           });
         }
-        userData.money -= 2000000;
-        userData.diamond -= 20;
-        await api.updateUser(userId, userData);
-
         const res = await postWaifuData("/marry", {
           userId,
           waifuid: i.values[0],
         });
+        userData.money -= 2000000;
+        userData.diamond -= 20;
+        await api.updateUser(userId, userData); 
         await response.edit({ content: `🎉 ${res.message}`, components: [] });
       } catch (e) {
         await response.edit({
@@ -669,7 +668,7 @@ module.exports = {
       case "gacha":
         return handleGacha(message, restArgs, client);
       case "my":
-        return handleMyWaifu(message, restArgs, client); 
+        return handleMyWaifu(message, restArgs, client);
       case "list":
       case "koleksi":
         return handleMyList(message, restArgs, client);
@@ -725,4 +724,3 @@ module.exports = {
     }
   },
 };
- 

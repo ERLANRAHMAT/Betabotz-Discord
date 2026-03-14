@@ -15,7 +15,7 @@ async function fetchQuestion() {
         const response = await fetch(`https://api.betabotz.eu.org/api/game/tebakepep?apikey=${config.apikey_lann}`);
         if (!response.ok) throw new Error(`API returned status ${response.status}`);
         const data = await response.json();
-        return data[Math.floor(Math.random() * data.length)];
+        return data;
     } catch (error) {
         console.error("[TEBAK EPEP] Gagal mengambil data dari API:", error);
         return null;

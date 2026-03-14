@@ -12,11 +12,10 @@ const threshold = 0.72;
 
 async function fetchQuestion() {
     try {
-        const res = await fetch(`https://api.betabotz.eu.org/api/game/asahotak?apikey=${config.apikey_lann}`);
-        if (!res.ok) throw new Error(`API response not OK: ${res.status}`);
-        const data = await res.json();
-        if (!Array.isArray(data) || data.length === 0) throw new Error("API tidak mengembalikan data soal.");
-        return data[Math.floor(Math.random() * data.length)];
+        const response = await fetch(`https://api.betabotz.eu.org/api/game/asahotak?apikey=${config.apikey_lann}`);
+        if (!response.ok) throw new Error(`API response not OK: ${response.status}`);
+        const data = await response.json();
+        return data;
     } catch (e) {
         console.error(`[ASAHOTAK] Gagal mengambil soal:`, e);
         return null;

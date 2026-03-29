@@ -9,14 +9,12 @@ const gameSessions = new Map();
 const initialAttempts = 3;
 const apiUrl = `https://api.danafxc.my.id/api/proxy/games?q=math&apikey=${API_KEY}`;
 
-// --- Konfigurasi Hadiah & Denda ---
 const rewardAmounts = {
     noob: 1000, easy: 5000, medium: 25000, hard: 75000, master: 150000,
     grandmaster: 300000, legendary: 500000, mythic: 750000, god: 1000000,
 };
 const penaltyAmount = 1000;
 const defaultReward = 10000;
-// ---
 
 const timeLimits = {
     noob: 30000, easy: 45000, medium: 60000, hard: 90000, master: 120000,
@@ -52,8 +50,6 @@ module.exports = {
     const authorId = message.author.id;
     const authorUsername = message.author.username;
 
-    // ==================== PERBAIKAN UTAMA DI SINI ====================
-    // Blok ini akan berjalan jika user hanya mengetik `!math`
     if (!mode) {
         const loadingHelp = await message.reply("🔍 Mengambil daftar level yang tersedia...");
         const allQuestions = await fetchAllQuestions();
@@ -79,9 +75,7 @@ module.exports = {
             );
         // Hentikan eksekusi setelah mengirim bantuan
         return loadingHelp.edit({ content: null, embeds: [helpEmbed] });
-    }
-    // ==================== AKHIR PERBAIKAN ====================
-    
+    }    
     try {
         const authorData = await api.getUser(authorId, authorUsername);
         if (authorData.money < penaltyAmount) {
@@ -105,48 +99,105 @@ module.exports = {
         const time = timeLimits[question.level] || defaultTime;
         const reward = rewardAmounts[question.level] || defaultReward;
 
-        const gameEmbed = new EmbedBuilder()
-          .setColor(0xF1C40F).setTitle(`🧮 Matematika Level: ${question.level}`)
-          .setDescription(`**Deskripsi:** ${question.deskripsi}`).addFields(
-              { name: 'Soal', value: `\`\`\`${question.soal}\`\`\`` },
-              { name: "Waktu", value: `⏳ ${(time / 1000)} detik`, inline: true },
-              { name: "Hadiah", value: `💰 ${reward.toLocaleString('id-ID')}`, inline: true },
-              { name: "Denda", value: `💸 ${penaltyAmount.toLocaleString('id-ID')}`, inline: true },
-              { name: "Kesempatan", value: `❤️ ${initialAttempts} kali`, inline: false }
-          ).setFooter({ text: "Ketik jawabanmu langsung di channel ini!" });
+        let gameEmbed;
+        let pilihanMap = null;
+        if (Array.isArray(question.jawabanGanda) && question.jawabanGanda.length >= 2) {
+            pilihanMap = question.jawabanGanda;
+            const options = pilihanMap.map((opt, i) => `**${String.fromCharCode(65 + i)}.** ${opt}`).join('\n');
+            gameEmbed = new EmbedBuilder()
+                .setColor(0xF1C40F)
+                .setTitle(`🧮 Matematika Level: ${question.level}`)
+                .setDescription(`**Deskripsi:** ${question.deskripsi}`)
+                .addFields(
+                    { name: 'Soal', value: `\n${question.soal}\n` },
+                    { name: 'Pilihan', value: options },
+                    { name: "Waktu", value: `⏳ ${(time / 1000)} detik`, inline: true },
+                    { name: "Hadiah", value: `💰 ${reward.toLocaleString('id-ID')}`, inline: true },
+                    { name: "Denda", value: `💸 ${penaltyAmount.toLocaleString('id-ID')}`, inline: true },
+                    { name: "Kesempatan", value: `❤️ ${initialAttempts} kali`, inline: false }
+                )
+                .setFooter({ text: "Jawab dengan huruf (A, B, C, D)!" });
+        } else {
+            // Jawaban isian
+            gameEmbed = new EmbedBuilder()
+                .setColor(0xF1C40F)
+                .setTitle(`🧮 Matematika Level: ${question.level}`)
+                .setDescription(`**Deskripsi:** ${question.deskripsi}`)
+                .addFields(
+                    { name: 'Soal', value: `\n${question.soal}\n` },
+                    { name: "Waktu", value: `⏳ ${(time / 1000)} detik`, inline: true },
+                    { name: "Hadiah", value: `💰 ${reward.toLocaleString('id-ID')}`, inline: true },
+                    { name: "Denda", value: `💸 ${penaltyAmount.toLocaleString('id-ID')}`, inline: true },
+                    { name: "Kesempatan", value: `❤️ ${initialAttempts} kali`, inline: false }
+                )
+                .setFooter({ text: "Ketik jawabanmu langsung di channel ini!" });
+        }
 
         await loadingMessage.edit({ content: "Soal ditemukan!", embeds: [gameEmbed] });
 
         const collector = message.channel.createMessageCollector({ time });
         gameSessions.set(channelId, {
-            answer: question.jawaban, reward: reward, attempts: initialAttempts,
+            answer: question.jawaban,
+            reward: reward,
+            attempts: initialAttempts,
+            pilihanMap: pilihanMap,
         });
 
         collector.on('collect', async msg => {
             if (msg.author.bot) return;
             const session = gameSessions.get(channelId);
             if (!session) return collector.stop();
-            
-            if (normalizeAnswer(msg.content) === normalizeAnswer(session.answer)) {
-                try {
-                    const winnerData = await api.getUser(msg.author.id, msg.author.username);
-                    winnerData.money += session.reward;
-                    await api.updateUser(msg.author.id, winnerData);
-                    await msg.reply(`✅ **Jenius!**\nSelamat, <@${msg.author.id}>, kamu menang +**${session.reward.toLocaleString('id-ID')}** Money!`);
-                } catch(e) {
-                    console.error("[MATH GAME] Gagal menyimpan hadiah:", e);
-                    await msg.reply(`✅ **Jenius!** Jawaban benar, tapi gagal menyimpan hadiahmu.`);
+
+            if (session.pilihanMap) {
+                const userGuess = msg.content.trim().toLowerCase();
+                if (/^[a-d]$/.test(userGuess)) {
+                    const idx = userGuess.charCodeAt(0) - 97;
+                    const pilihanUser = session.pilihanMap[idx];
+                    if (normalizeAnswer(pilihanUser) === normalizeAnswer(session.answer)) {
+                        try {
+                            const winnerData = await api.getUser(msg.author.id, msg.author.username);
+                            winnerData.money += session.reward;
+                            await api.updateUser(msg.author.id, winnerData);
+                            await msg.reply(`✅ **Jenius!**\nSelamat, <@${msg.author.id}>, kamu menang +**${session.reward.toLocaleString('id-ID')}** Money!`);
+                        } catch(e) {
+                            console.error("[MATH GAME] Gagal menyimpan hadiah:", e);
+                            await msg.reply(`✅ **Jenius!** Jawaban benar, tapi gagal menyimpan hadiahmu.`);
+                        }
+                        collector.stop('correct');
+                    } else {
+                        session.attempts--;
+                        if (session.attempts <= 0) {
+                            collector.stop('no_attempts');
+                        } else {
+                            msg.react('❌');
+                            msg.reply(`Jawaban salah! Sisa **${session.attempts}** kesempatan.`).then(replyMsg => {
+                                setTimeout(() => replyMsg.delete().catch(() => {}), 7000);
+                            });
+                        }
+                    }
                 }
-                collector.stop('correct');
             } else {
-                session.attempts--;
-                if (session.attempts <= 0) {
-                    collector.stop('no_attempts');
+                if (normalizeAnswer(msg.content) === normalizeAnswer(session.answer)) {
+                    try {
+                        const winnerData = await api.getUser(msg.author.id, msg.author.username);
+                        winnerData.money += session.reward;
+                        await api.updateUser(msg.author.id, winnerData);
+                        await msg.reply(`✅ **Jenius!**\nSelamat, <@${msg.author.id}>, kamu menang +**${session.reward.toLocaleString('id-ID')}** Money!`);
+                    } catch(e) {
+                        console.error("[MATH GAME] Gagal menyimpan hadiah:", e);
+                        await msg.reply(`✅ **Jenius!** Jawaban benar, tapi gagal menyimpan hadiahmu.`);
+                    }
+                    collector.stop('correct');
                 } else {
-                    msg.react('❌');
-                    msg.reply(`Jawaban salah! Sisa **${session.attempts}** kesempatan.`).then(replyMsg => {
-                        setTimeout(() => replyMsg.delete().catch(() => {}), 7000);
-                    });
+                    session.attempts--;
+                    if (session.attempts <= 0) {
+                        collector.stop('no_attempts');
+                    } else {
+                        msg.react('❌');
+                        msg.reply(`Jawaban salah! Sisa **${session.attempts}** kesempatan.`).then(replyMsg => {
+                            setTimeout(() => replyMsg.delete().catch(() => {}), 7000);
+                        });
+                    }
                 }
             }
         });
